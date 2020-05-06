@@ -11,7 +11,7 @@ function Neuron:init()
 
     self.synapse = {}
 
-    for i=0, CONNECTIONS do
+    for i=1, CONNECTIONS do
         local synapse_id
         synapse_id = math.random(1, BRAINSIZE)
         -- make at least 20% of neurons link to input sensors
@@ -26,12 +26,12 @@ function Neuron:init()
         }
     end
 
-    self.ouptut = 0 -- current output
+    self.output = 0 -- current output
     self.target = 0 -- target output state
 end
 
 function Neuron:update(dt)
-    self.ouptut = self.ouptut + (self.target - self.ouptut)*self.dampening
+    self.output = self.output + (self.target - self.output)*self.dampening
 end
 
 --[[
@@ -68,8 +68,9 @@ function Brain:update(sensors)
         if neuron.type == 0 then
             -- AND NEURON
             local res = 1
-            for j=0, CONNECTIONS do
-                local idx, w, inhb = neuron.synapse_id, neuron.w, neuron.is_inhibitory
+            for j=1, CONNECTIONS do
+                local synapse = neuron.synapse[j]
+                local idx, w, inhb = synapse.synapse_id, synapse.w, synapse.is_inhibitory
                 local post_syn_pot = self.neurons[idx].output
 
                 -- flip inhibitory synaptic potentials
@@ -85,8 +86,9 @@ function Brain:update(sensors)
         else
             -- OR NEURON
             local res = 0
-            for j=0, CONNECTIONS do
-                local idx, w, inhb = neuron.synapse_id, neuron.w, neuron.is_inhibitory
+            for j=1, CONNECTIONS do
+                local synapse = neuron.synapse[j]
+                local idx, w, inhb = synapse.synapse_id, synapse.w, synapse.is_inhibitory
                 local post_syn_pot = self.neurons[idx].output
 
                 -- flip inhibitory synaptic potentials

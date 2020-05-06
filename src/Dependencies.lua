@@ -4,5 +4,7 @@ Vector = require 'lib/hump/vector'
 
 require 'src/utility'
 
+require 'src/constants'
+
 require 'src/brain'
 require 'src/agent'
