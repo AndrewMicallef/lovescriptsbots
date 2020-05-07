@@ -10,3 +10,5 @@ POPULATION = 30
 ------
 
 HEALTHMAX = 4
+
+MAX_THRUST = 2

@@ -44,6 +44,33 @@ function cappedvalue(v, min, max)
 end
 
 
-function softmax(v)
+function softmax(x)
     -- TODO implement softmax
+    -- http://neuralnetworksanddeeplearning.com/chap1.html
+    -- equation 3
+    return 1 / (1 + math.exp(-x))
+end
+
+
+function tablelength(T)
+  local count = 0
+  for _ in pairs(T) do count = count + 1 end
+  return count
+end
+
+-- creates a table with a numerical index and item count
+function Ntable(table)
+    local ntable = {}
+
+    local _count = tablelength(table)
+    -- yields an array of keys in a set order
+    local _keys = {}
+    for _, k in pairs(table) do
+        ntable[k] = 0 -- initialise to zero
+        _keys[#_keys+1] = k
+    end
+    ntable._keys = _keys
+    ntable._count = _count
+
+    return ntable
 end
