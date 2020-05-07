@@ -37,7 +37,7 @@ function Agent:init(def)
                            "flagella.thrust",
                            "col.red", "col.gre", "col.blu",
                            "vx", "vy",
-                           "mx", "my"
+                           "mx", "my", 'dm'
                          }
 
     self.actuators = Ntable{
@@ -102,6 +102,9 @@ function Agent:sense()
     local mx, my = love.mouse.getPosition()
     self.sensors["mx"] = mx
     self.sensors["my"] = my
+
+    local px, py = self.body:getPosition()
+    self.sensors['dm'] = math.sqrt((mx - px)^2 + (my-py)^2)
 end
 
 function Agent:think()
