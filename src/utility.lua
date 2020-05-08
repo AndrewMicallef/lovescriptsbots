@@ -74,3 +74,17 @@ function Ntable(table)
 
     return ntable
 end
+
+-- https://www.mathopenref.com/coordpolygonarea2.html
+function polygonArea(points)
+    -- where X, Y is a list of points in the arangements x1,y1,x2,y2 ... xn,yn
+    local area = 0 -- Accumulates area
+    local prevpoint = #points
+    local numpoints = #points
+
+    for i=1, numpoints do
+     area = area + (points[prevpoint].x+points[i].x) * (points[prevpoint].y-points[i].y)
+     prevpoint = i  -- j is previous vertex to i
+    end
+      return area/2
+end
