@@ -10,5 +10,6 @@ require 'src/constants'
 require 'src/vertex'
 require 'src/Dummy'
 
+require 'src/Neuron'
 require 'src/brain'
 require 'src/agent'
