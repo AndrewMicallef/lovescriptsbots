@@ -9,7 +9,8 @@ function Agent:init(def)
     self.angle = def.angle or math.random() * 2 * math.pi
 
     self.health = def.health or math.random() * HEALTHMAX
-    self.age = 0
+    self.isdead = false
+    self.birth = love.timer.getTime()
     self.gencount = 0 or def.parent.gencount + 1
 
     self.col = {red = math.random() or def.parent.col.red,
@@ -29,7 +30,7 @@ function Agent:init(def)
     self.body = love.physics.newBody(self.world, self.pos.x, self.pos.y, 'dynamic')
     self.shape = love.physics.newCircleShape(self.radius)
     self.fixture = love.physics.newFixture(self.body, self.shape)
-    self.body:setUserData(self)
+    self.fixture:setUserData(self)
 
     self.sensors = Ntable{"health",
                            "angle",
@@ -55,6 +56,13 @@ end
 
 function Agent:update(dt)
 
+    if self.isdead then
+        if not self.body:isDestroyed() then
+            self.body:destroy()
+        end
+        return
+    end
+
     -- metabolise
     self:metabolise(dt)
 
@@ -72,18 +80,26 @@ function Agent:render()
 
     love.graphics.setColor(self.col.red, self.col.gre, self.col.blu, 1)
 
-    local cx, cy = self.body:getWorldPoints(self.shape:getPoint())
-    love.graphics.circle('fill', cx, cy, self.shape:getRadius())
+    local cx, cy = self.pos.x, self.pos.y
+    if self.isdead then
+        love.graphics.circle('line', cx, cy, self.shape:getRadius())
+    else
+        love.graphics.circle('fill', cx, cy, self.shape:getRadius())
+    end
 
 end
 
 function Agent:metabolise(dt)
 
---TODO overtime health declines
---TODO eating food adds to health
---TODO reproducing costs health
+    --TODO overtime health declines
+    --TODO eating food adds to health
+    --TODO reproducing costs health
 
+    self.health = self.health - dt * 0.1
 
+    if self.health < 0 then
+        self.isdead = true
+    end
 end
 
 function Agent:sense()
@@ -105,6 +121,7 @@ function Agent:sense()
 
     local px, py = self.body:getPosition()
     self.sensors['dm'] = math.sqrt((mx - px)^2 + (my-py)^2)
+    self.pos.x, self.pos.y = px, py
 end
 
 function Agent:think()

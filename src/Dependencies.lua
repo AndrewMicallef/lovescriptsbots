@@ -8,3 +8,4 @@ require 'src/constants'
 
 require 'src/brain'
 require 'src/agent'
+require 'src/food'
