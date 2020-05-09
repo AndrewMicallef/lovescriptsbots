@@ -33,7 +33,6 @@ function randn(mu, sigma)
     end
 end
 
-
 function cappedvalue(v, min, max)
 
     min = min or 0
@@ -43,11 +42,9 @@ function cappedvalue(v, min, max)
 
 end
 
-
+-- http://neuralnetworksanddeeplearning.com/chap1.html
+-- equation 3
 function softmax(x)
-    -- TODO implement softmax
-    -- http://neuralnetworksanddeeplearning.com/chap1.html
-    -- equation 3
     return 1 / (1 + math.exp(-x))
 end
 

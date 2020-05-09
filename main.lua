@@ -9,26 +9,22 @@ function love.load()
     -- instantiate the world
     world = love.physics.newWorld(0,0, true)
 
-
-    local DishPoints = { WIDTH, HEIGHT,
-                        0, HEIGHT,
-                        0,0,
-                         WIDTH, 0,
+    local DishPoints = {WIDTH, HEIGHT, -- top right
+                        0, HEIGHT,     -- top left
+                        0,0,           -- bot left
+                        WIDTH, 0,      -- bot right
                         }
 
     Dish = {}
 	Dish.body = love.physics.newBody(world, 0, 0, "kinematic")
 	Dish.shape = love.physics.newChainShape(true, unpack(DishPoints))
 	Dish.fixture = love.physics.newFixture(Dish.body, Dish.shape)
-	--Dish.body:setAngularVelocity(0.5)
-
 
     -- spawn agents
-    agents = {}
-    for i=1, POPULATION do
-        agents[i] = Agent{world = world, id=i}
-    end
-
+    agent = Dummy{world=world,
+                  pos=Vector.new(WIDTH/2, HEIGHT/2),
+                  res=10
+              }
 
     background = love.graphics.newCanvas()
     love.graphics.setCanvas(background)
@@ -51,28 +47,20 @@ function love.load()
     love.graphics.line(Dish.body:getWorldPoints(Dish.shape:getPoints()))
     love.graphics.setCanvas()
 
-
 end
 
 function love.update(dt)
 
-    for _, a in pairs(agents) do
-        a:update(dt)
-    end
+    agent:update(dt)
 
     world:update(dt)
-
 end
 
 
 function love.draw()
 
-    love.graphics.setColor(1,1,1,1)
-    love.graphics.draw(background)
+    --love.graphics.setColor(1,1,1,1)
+    --love.graphics.draw(background)
 
-    for _, a in pairs(agents) do
-        a:render()
-    end
-
-
+    agent:render()
 end

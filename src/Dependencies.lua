@@ -6,5 +6,9 @@ require 'src/utility'
 
 require 'src/constants'
 
+--building blocks
+require 'src/vertex'
+require 'src/Dummy'
+
 require 'src/brain'
 require 'src/agent'
