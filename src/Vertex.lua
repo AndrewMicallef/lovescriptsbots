@@ -13,9 +13,14 @@ function Vertex:init(def)
     self.edges = def.edges or {}
     self.edgelist = {}
 
+    self.isselected = nil
+    self.dragging = {active = false, diffX = 0, diffY = 0}
+
     self.body = love.physics.newBody(self.world, self.x, self.y, 'dynamic')
     self.shape = love.physics.newCircleShape(VERTEX_RADIUS)
     self.fixture = love.physics.newFixture(self.body, self.shape)
+
+    self.body:setUserData(self)
 
     --joint =
 end
@@ -60,11 +65,16 @@ function Vertex:update(dt)
 end
 
 function Vertex:render()
-    love.graphics.setColor(0,1,1,1)
+    local vcol, ecol = {0,1,1,1}, {1,1,0,1}
+    if self.isselected then
+        vcol = {1,1,0,1}
+        ecol = {1,0,1,1}
+    end
+    love.graphics.setColor(vcol)
     local cx, cy = self.body:getPosition()
     love.graphics.circle("line", cx, cy, VERTEX_RADIUS)
 
-    love.graphics.setColor(1,1,0,1)
+    love.graphics.setColor(ecol)
     for _, joint in pairs(self.edgelist) do
         --TODO draw edge
         love.graphics.line(joint:getAnchors())
