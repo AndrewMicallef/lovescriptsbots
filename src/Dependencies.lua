@@ -6,6 +6,9 @@ require 'src/utility'
 
 require 'src/constants'
 
+-- base class for all entities
+require 'src/entity'
+
 require 'src/brain'
 require 'src/agent'
 require 'src/food'

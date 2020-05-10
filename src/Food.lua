@@ -1,22 +1,11 @@
-Food = Class{}
+Food = Class{__includes = Entity}
 
 function Food:init(def)
-
-    self.world = def.world --maintain reference to the world
-    self.id=0
-
-    self.pos = def.pos or Vector.new(math.random(0, WIDTH), math.random(0, HEIGHT))
-
-    self.health = def.health or math.random() * HEALTHMAX
-    self.col = {red = math.cos(self.health),
-                gre = math.sin(self.health),
-                blu = math.cos(self.health)}
-
-    self.radius = 5
+    Entity.init(self, def)
 
     -- physical presence
     self.body = love.physics.newBody(self.world, self.pos.x, self.pos.y, 'dynamic')
-    self.shape = love.physics.newRectangleShape(self.radius, self.radius)
+    self.shape = love.physics.newRectangleShape(self.size, self.size)
     self.fixture = love.physics.newFixture(self.body, self.shape)
     self.fixture:setUserData(self)
 
@@ -27,12 +16,10 @@ function Food:update(dt)
 end
 
 function Food:render()
+    local body, shape, col = self.body, self.shape, self.col
 
-    love.graphics.setColor(self.col.red, self.col.gre, self.col.blu, 1)
-    local _ = love.graphics.getLineWidth()
-    love.graphics.setLineWidth(2)
-    love.graphics.rectangle('fill', self.pos.x, self.pos.y, self.radius, self.radius)
-    love.graphics.setLineWidth(_)
+    love.graphics.setColor(col.r, col.g, col.b, 1)
+    love.graphics.polygon('fill', body:getWorldPoints(shape:getPoints()))
 
 end
 

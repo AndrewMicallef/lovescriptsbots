@@ -110,7 +110,8 @@ function love.update(dt)
     end
 
     if math.random(0, 30) > 29 then
-        table.insert(entities, Food{world=world})
+        table.insert(entities, Food{world=world, size=6,
+                                    col={r=1, g=1,b=1}})
     end
 
 end
