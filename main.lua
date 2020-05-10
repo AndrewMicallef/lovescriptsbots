@@ -21,10 +21,14 @@ function love.load()
 	Dish.fixture = love.physics.newFixture(Dish.body, Dish.shape)
 
     -- spawn agents
-    agent = Dummy{world=world,
-                  pos=Vector.new(WIDTH/2, HEIGHT/2),
-                  res=10
-              }
+    agents = {}
+    for i=1, POPULATION do
+        agent = Agent{world=world,
+                      pos=Vector.new(WIDTH/2, HEIGHT/2),
+                      res=10
+                  }
+        table.insert(agents, agent)
+    end
 
     background = love.graphics.newCanvas()
     love.graphics.setCanvas(background)
@@ -50,8 +54,9 @@ function love.load()
 end
 
 function love.update(dt)
-
-    agent:update(dt)
+    for _, agent in pairs(agents) do
+        agent:update(dt)
+    end
 
     world:update(dt)
 end
@@ -59,8 +64,10 @@ end
 
 function love.draw()
 
-    --love.graphics.setColor(1,1,1,1)
-    --love.graphics.draw(background)
+    love.graphics.setColor(1,1,1,1)
+    love.graphics.draw(background)
 
-    agent:render()
+    for _, agent in pairs(agents) do
+        agent:render()
+    end
 end
