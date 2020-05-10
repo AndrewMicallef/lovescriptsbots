@@ -16,7 +16,7 @@ function Vertex:init(def)
     self.isselected = nil
     self.dragging = {active = false, diffX = 0, diffY = 0}
 
-    self.body = love.physics.newBody(self.world, self.x, self.y, 'dynamic')
+    self.body = love.physics.newBody(self.world, self.x, self.y, def.type or 'dynamic')
     self.shape = love.physics.newCircleShape(VERTEX_RADIUS)
     self.fixture = love.physics.newFixture(self.body, self.shape)
 
@@ -61,6 +61,17 @@ function Vertex:setEdges()
 end
 
 function Vertex:update(dt)
+
+    if self.dragging.active and love.mouse.isDown(1) then
+        local x,y = self.x, self.y
+        local cx, cy = love.mouse.getPosition( )
+        local dx, dy = cx-x, cy-y
+        self.body:setPosition(x + dx, y + dy)
+    else
+        self.dragging.active = false
+    end
+
+
     self.x, self.y = self.body:getPosition()
 end
 

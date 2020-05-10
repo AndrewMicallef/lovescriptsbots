@@ -12,7 +12,7 @@ function love.load()
     -- spawn agents
     agent = Dummy{world=world,
                   pos=Vector.new(WIDTH/2, HEIGHT/2),
-                  res=10
+                  res=12
               }
 end
 
@@ -30,16 +30,13 @@ end
 
 
 function love.mousepressed(x, y, button)
-    --[[get selected item
-    if button == "l"
-        and x > selected.x and x < selected.x + selected.width
-        and y > selected.y and y < selected.y + selected.height
+    if button == 1
+        and selected
+        and x > selected.x - 10 and x < selected.x + 10
+        and y > selected.y - 10 and y < selected.y + 10
     then
     selected.dragging.active = true
-    selected.dragging.diffX = x - selected.x
-    selected.dragging.diffY = y - selected.y
     end
-    ]]
 
     if button == 2
     then
@@ -62,5 +59,12 @@ function love.mousepressed(x, y, button)
         else
             if selected then selected.isselected = nil end
         end
+    end
+end
+
+
+function love.keypressed(key)
+    if key == 'escape' then
+        love.event.quit('restart')
     end
 end
