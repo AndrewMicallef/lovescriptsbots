@@ -13,7 +13,7 @@ function Dummy:init(def)
     -- note that I am using position 0 as the root vertex...
     self.cent_vert = Vertex{x=self.pos.x, y=self.pos.y,
                                 world=self.world, parent=self,
-                                id=0, type ='static'}
+                                id=0, type = nil}
     --print(self.verticies[0])
     -- place polygon verticies
     for i=1, self.res do
