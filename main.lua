@@ -59,6 +59,8 @@ function love.mousepressed(x, y, button)
             if selected then selected.isselected = nil end
             selected = nearest.sel
             selected.isselected = true
+        else
+            if selected then selected.isselected = nil end
         end
     end
 end
