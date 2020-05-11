@@ -1,3 +1,4 @@
+--Dummy = Class{__includes = Entity}
 Dummy = Class{}
 
 function Dummy:init(def)
@@ -5,51 +6,23 @@ function Dummy:init(def)
 
     -- position in the world
     self.pos = def.pos or Vector.new(math.random(0, WIDTH), math.random(0, HEIGHT))
-    self.angle = def.angle or math.random() * 2 * math.pi
 
     self.res = def.res or 8
     self.radius = 90
-    self.verticies = {}
-    -- note that I am using position 0 as the root vertex...
-    self.cent_vert = Vertex{x=self.pos.x, y=self.pos.y,
-                                world=self.world, parent=self,
-                                id=0, type = nil}
-    --print(self.verticies[0])
-    -- place polygon verticies
-    for i=1, self.res do
-        local l1 = i-1
-        local l2 = i+1
-        if i == self.res then l2 = 1 end
-        if i == 1 then l1 = self.res end
+    self.body = PolygonBody(self)
+    self.verticies = self.body.verticies
 
-        local phi = i/self.res * math.pi * 2
-        local cx = math.cos(phi) * self.radius + self.pos.x
-        local cy = math.sin(phi) * self.radius  + self.pos.y
-        self.verticies[i] = Vertex{x=cx, y=cy,
-                                    world=self.world,
-                                    parent=self,
-                                    id = i,
-                                    edges={0, l1, l2}
-                                }
-        print(self.verticies[i])
-    end
-
-    -- need all verticies to exist before we connect them all together
-    self:JoinVerticies()
-
-
---    self.area = {base=polygonArea(self.points)}
---    self.area.current = self.area.base
+    -- not sure if I want polygon body to mimic b2d shapes and fixtures...
+    -- I think I might want to do this for collision detection
+    --self.shape = PolygonBody:getShape()
+    --self.fixture = PolygonBody:getFixture()
 
     -- collection of the traits that are able to be mutated
---    self.mutable_traits = {}
+    -- self.mutable_traits = {}
 end
 
 function Dummy:update(dt)
-
-    for i, vertex in ipairs(self.verticies) do
-        vertex:update(dt)
-    end
+    self.body:update(dt)
 end
 
 function Dummy:render()
@@ -58,17 +31,10 @@ function Dummy:render()
     love.graphics.setColor(.3,0,5, 3)
     love.graphics.polygon('fill', unpack(self:getPoints()))
 
-    for i, vertex in ipairs(self.verticies) do
-        vertex:render()
-    end
+    --TODO reconsider this
+    self.body:render()
 end
---------------------------------------------------------------------------------
 
-function Dummy:JoinVerticies()
-    for i, vertex in ipairs(self.verticies) do
-        vertex:setEdges()
-    end
-end
 --------------------------------------------------------------------------------
 
 function Dummy:getPoints()
@@ -94,4 +60,8 @@ end
 
 function Dummy:typeOf(name)
     return name == self:type()
+end
+
+function Dummy:__tostring()
+    return "Dummy"
 end

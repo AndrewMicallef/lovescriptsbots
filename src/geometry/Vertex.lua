@@ -5,8 +5,8 @@ A vertex is a physical object with a body, circleshape, which is connected to
 0 or more other verticies via spring joints
 ]]
 function Vertex:init(def)
-    self.world = def.world
     self.parent = def.parent
+    self.world = self.parent.world
     self.id = def.id --some unique ID
     self.x = def.x
     self.y = def.y
@@ -25,41 +25,6 @@ function Vertex:init(def)
     --joint =
 end
 
-function Vertex:setEdges()
-    -- verticies is a table of vertex objects
-    local sx, sy = self.body:getPosition()
-    for i, vid in ipairs(self.edges) do
-        if vid == 0 then
-            vertex = self.parent.cent_vert
-        else
-            vertex = self.parent.verticies[vid]
-        end
-
-        if self.edgelist[vertex.id] then goto continue end
-
-        local vx, vy = vertex.body:getPosition()
-        --newDistanceJoint(body1, body2, x1, y1, x2, y2, collideConnected)
-        local joint = love.physics.newDistanceJoint(self.body, vertex.body,
-                                              sx, sy, vx, vy, true)
-
-        joint:setDampingRatio(0)
-        joint:setFrequency(1)
-        if vid == 0 then
-            joint:setLength(self.parent.radius-3)
-        else
-            joint:setLength(40)
-        end
-
-        -- TODO replace with vertex.id instead
-        -- I think each table will have a unique location in memory
-        -- need to test this
-        self.edgelist[vertex.id] = joint
-        vertex.edgelist[self.id] = joint
-        print('connect ' .. self.id .." to "..vid)
-        ::continue::
-    end
-end
-
 function Vertex:update(dt)
 
     if self.dragging.active and love.mouse.isDown(1) then
@@ -70,7 +35,6 @@ function Vertex:update(dt)
     else
         self.dragging.active = false
     end
-
 
     self.x, self.y = self.body:getPosition()
 end
@@ -84,12 +48,6 @@ function Vertex:render()
     love.graphics.setColor(vcol)
     local cx, cy = self.body:getPosition()
     love.graphics.circle("line", cx, cy, VERTEX_RADIUS)
-
-    love.graphics.setColor(ecol)
-    for _, joint in pairs(self.edgelist) do
-        --TODO draw edge
-        love.graphics.line(joint:getAnchors())
-    end
 end
 
 

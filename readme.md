@@ -1,22 +1,20 @@
+# Love:ScriptBots
 
-rework of https://github.com/Ramblurr/scriptbots in love engine
+This project is a hobbiests fork of Andrej Karpathy's [ScriptBots], rewritten
+in the [love2D] engine.
 
 --------------------------------------------------------------------------------
 
-[https://stackoverflow.com/a/17437077/2727632]
-If you want to access the items in a specific order, retrieve the keys from `arr`
-and sort it. Then access arr through the sorted keys:
+# RoadMap
 
-```lua
-local ordered_keys = {}
+* [x] Basic Agent Dynamics
+* [x] Basic Metabolism
+* [ ] Reproduction
+* [ ] Evolution
+* [ ] Learning
 
-for k in pairs(arr) do
-    table.insert(ordered_keys, k)
-end
+* [ ] Dynamic Polygon Bodies
+* [ ] Geometric Logic
 
-table.sort(ordered_keys)
-for i = 1, #ordered_keys do
-    local k, v = ordered_keys[i], arr[ ordered_keys[i] ]
-    print(k, v[1], v[2], v[3])
-end
-```
+[ScriptBots]:(https://github.com/Ramblurr/scriptbots)
+[love2d]:(https://love2d.org/)

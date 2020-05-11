@@ -20,7 +20,7 @@ function love.update(dt)
 
     agent:update(dt)
 
-    world:update(dt)
+    --world:update(dt)
 end
 
 

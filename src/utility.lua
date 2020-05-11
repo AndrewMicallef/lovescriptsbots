@@ -85,3 +85,9 @@ function polygonArea(points)
     end
       return area/2
 end
+
+function Edge(u, v)
+    local edge = {u, v}
+    table.sort(edge)
+    return edge
+end

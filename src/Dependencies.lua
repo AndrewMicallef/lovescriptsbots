@@ -7,7 +7,11 @@ require 'src/utility'
 require 'src/constants'
 
 --building blocks
-require 'src/vertex'
+
+require 'src/geometry/vertex'
+require 'src/geometry/PolygonBody'
+
+
 require 'src/Dummy'
 
 require 'src/brain'
