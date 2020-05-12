@@ -15,7 +15,44 @@ function PolygonBody:init(parent)
     self.verticies = {}
     self.edges = {}
 
-    -- generate a ring of verticies
+    --[[
+    local points = { [1] = {0,0},
+                     [2] = {0.3, 0},
+                     [3] = {0.3, 0.2},
+                     [4] = {0.2, 0.4},
+                     [5] = {0.5, 0.5},
+                     [6] = {0.8, 0.4},
+                     [7] = {0.7, 0.2},
+                     [8] = {0.7, 0},
+                     [9] = {1, 0},
+                     [10] = {0.5, 1},
+                 }
+
+    local edges = { Edge(1,10),
+                    Edge(1,2),
+                    Edge(2,3),
+                    Edge(3,4),
+                    Edge(4,5),
+                    Edge(5,6),
+                    Edge(6,7),
+                    Edge(7,8),
+                    Edge(8,9),
+                    Edge(9,10),
+                }
+
+    for i, point in ipairs(points) do
+        local x,y = unpack(point)
+        self.verticies[i] = Vertex{x=x, y=y,
+                                    parent=self,
+                                    id = i
+                                }
+    end
+
+    for i, edge in ipairs(edges) do
+        self.edges[edge] = true
+    end
+    ]]
+    --[[ generate a ring of verticies
     for i=1, self.res do
         local e1 = i-1
         local e2 = i+1
@@ -34,6 +71,7 @@ function PolygonBody:init(parent)
                                     id = i
                                 }
     end
+    --]]
 
     -- need all verticies to exist before we connect them all together
     self:initEdges()
@@ -118,7 +156,7 @@ end
 
 
 function PolygonBody:update(dt)
-
+    --[[
     local newedges = {}
     local removeedges = {}
     for edge1, _joint in pairs(self.edges) do
@@ -163,7 +201,7 @@ function PolygonBody:update(dt)
             self:linkEdge(edge)
         end
     end
-
+    ]]
     for _, vertex in pairs(self.verticies) do
         vertex:update(dt)
     end
