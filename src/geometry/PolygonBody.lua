@@ -13,7 +13,7 @@ function PolygonBody:init(parent)
     self.radius = parent.radius
 
     self.verticies = {}
-    self.edges = {}
+    self.edges = {} for i=1, self.res do self.edges[i] = {} end
 
     -- generate a ring of verticies
     for i=1, self.res do
@@ -22,8 +22,8 @@ function PolygonBody:init(parent)
         if i == self.res then e2 = 1 end
         if i == 1 then e1 = self.res end
 
-        self.edges[Edge(i, e1)] = true
-        self.edges[Edge(i, e2)] = true
+        self.edges[i][e1] = true
+        self.edges[i][e2] = true
 
 
         local phi = i/self.res * math.pi * 2
@@ -38,135 +38,42 @@ function PolygonBody:init(parent)
     -- need all verticies to exist before we connect them all together
     self:initEdges()
 
+    self.internal_vol = self:getArea()
+
 
 --    self.area = {base=polygonArea(self.points)}
 --    self.area.current = self.area.base
 end
 
-function PolygonBody:edgeflip(edgeAB, edgeCD)
-    --[[
-    --TODO take an edge, list of connected verticies
-    -- and swap one vertex with nearest vertex of the neighbouring edge
-    -    A ---- B           A        B
-    -               ---->>  |        |
-    -                       |        |
-    -    C -----D           C        D
-    ]]
-
-    local A,B = unpack(edgeAB)
-    local C,D = unpack(edgeCD)
-
-    self.edges[edgeAB]:destroy()
-    self.edges[edgeAB] = nil
-    self.edges[edgeCD]:destroy()
-    self.edges[edgeCD] = nil
-
-    local vertA = self.vertices[A]
-    local vertB = self.vertices[B]
-    local vertC = self.vertices[C]
-    local vertD = self.vertices[D]
-
-    local dAC, dBC
-    dAC = math.abs(vertA.x - vertC.x) + math.abs(vertA.y - vertC.y)
-    dBC = math.abs(vertB.x - vertC.x) + math.abs(vertB.y - vertC.y)
-
-    if dAC < dBC then
-        self.edges[Edge(A,C)] = true
-        self.edges[Edge(B,D)] = true
-    else
-        self.edges[Edge(A,D)] = true
-        self.edges[Edge(B,C)] = true
-    end
-
-end
-
-function PolygonBody:removeEdge(edge)
-    if self.edges[edge] then
-        self.edges[edge]:destroy()
-        self.edges[edge]:release()
-        self.edges[edge] = nil
-    end
-end
-
-function PolygonBody:initEdges()
-    for edge, _joint in pairs(self.edges) do
-        self:linkEdge(edge)
-    end
-end
-
-function PolygonBody:linkEdge(edge)
-
-    local vidx1, vidx2 = unpack(edge)
-    if vidx1 == vidx2 then
-        self.edges[edge] = nil
-        return
-    end
-
-    local vert1 = self.verticies[vidx1]
-    local vert2 = self.verticies[vidx2]
-
-    local x1, y1 = vert1.body:getPosition()
-    local x2, y2 = vert2.body:getPosition()
-    --newDistanceJoint(body1, body2, x1, y1, x2, y2, collideConnected)
-    local joint = love.physics.newDistanceJoint(vert1.body, vert2.body,
-                                                x1, y1, x2, y2, true)
-    joint:setDampingRatio(0)
-    joint:setFrequency(1)
-
-    self.edges[edge] = joint
-end
-
 
 function PolygonBody:update(dt)
+    -- pressure is negative when area is smaller than internalvol
+    local pressure = (self:getArea() - self.internal_vol) * PRESSURE_CONSTANT
+    --print(pressure)
+    self.pos = Vector(self:getPosition())
 
-    local newedges = {}
-    local removeedges = {}
-    for edge1, _joint in pairs(self.edges) do
-        local A, B = unpack(edge1)
-        local vA, vB = self.verticies[A], self.verticies[B]
-        local dAB = math.abs(vA.x - vB.x) + math.abs(vA.y - vB.y)
 
-        for edge2, _joint in pairs(self.edges) do
-            if edge2 == edge1 then goto continue end
+    -- surface normal is in the direction opposite the pull of the two springs
+    for i, vertex in ipairs(self.verticies) do
+        local x0, y0 = vertex.x, vertex.y
 
-            local C, D = unpack(edge2)
-            local vC, vD = self.verticies[C], self.verticies[D]
-            local dCD = math.abs(vC.x - vD.x) + math.abs(vC.y - vD.y)
-
-            dAC = math.abs(vC.x - vA.x) + math.abs(vC.y - vA.y)
-            dAD = math.abs(vD.x - vA.x) + math.abs(vD.y - vA.y)
-
-            dBC = math.abs(vB.x - vC.x) + math.abs(vB.y - vC.y)
-            dBD = math.abs(vB.x - vD.x) + math.abs(vB.y - vD.y)
-
-            if dAB > dAC and dAB > dBD then
-                newedges[Edge(A,C)] = true
-                newedges[Edge(B,D)] = true
-                removeedges[Edge(A,B)] = true
-                removeedges[Edge(C,D)] = true
-            elseif dAB > dAD and dAB > dBC then
-                newedges[Edge(A,D)] = true
-                newedges[Edge(B,C)] = true
-                removeedges[Edge(A,B)] = true
-                removeedges[Edge(C,D)] = true
-            end
-            ::continue::
+        local edges = {}
+        local normvec = Vector(0, 0)
+        for j, edge in pairs(self.edges[i]) do
+            local x1,y1 = self.verticies[j].x, self.verticies[j].y
+            normvec = normvec + Vector(x1-x0, y1-y0)
         end
+        vertex.norm = normvec
+        local pforce = -normvec * pressure / self.res
+        vertex.body:applyLinearImpulse(pforce.x, pforce.y)
     end
 
-    for edge, _ in pairs(removeedges) do
-        self:removeEdge(edge)
-    end
 
-    for edge, _ in pairs(newedges) do
-        if not self.edges[edge] then
-            self:linkEdge(edge)
-        end
-    end
 
-    for _, vertex in pairs(self.verticies) do
+    for i, vertex in ipairs(self.verticies) do
         vertex:update(dt)
     end
+
 
 end
 
@@ -178,12 +85,96 @@ function PolygonBody:render()
     end
 
     love.graphics.setColor(ecol)
-    for _, joint in pairs(self.edges) do
-        --TODO draw edge
-        love.graphics.line(joint:getAnchors())
+    for j=1, self.res do
+        for i=1, self.res do
+
+            local edge = self.edges[i][j]
+            if not edge then goto continue end
+            --TODO draw edge
+            local x0,y0, x1,y1= edge.joint:getAnchors()
+            local r = x0 - x1
+            love.graphics.line(x0,y0,x1,y1)
+            --love.graphics.circle('line', x0,y0,r)
+            ::continue::
+        end
     end
 
     for i, vertex in ipairs(self.verticies) do
         vertex:render()
     end
+end
+
+function PolygonBody:initEdges()
+    for j=1, self.res do
+        for i=1, self.res do
+
+            if self.edges[i][j] then
+                self:linkEdge(i,j)
+            end
+        end
+    end
+end
+
+function PolygonBody:linkEdge(vi,vj)
+
+    if vi == vj then
+        self.edges[vi][vj] = nil
+        return
+    -- skip already connected edges
+    elseif type(self.edges[vi][vj]) ~= 'boolean' then
+        return
+    end
+
+    local vert1 = self.verticies[vi]
+    local vert2 = self.verticies[vj]
+
+    local x1, y1 = vert1.body:getPosition()
+    local x2, y2 = vert2.body:getPosition()
+
+    local edge = {isedge = true}
+    --newDistanceJoint(body1, body2, x1, y1, x2, y2, collideConnected)
+    local joint = love.physics.newDistanceJoint(vert1.body, vert2.body,
+                                                x1, y1, x2, y2, true)
+    joint:setDampingRatio(0)
+    joint:setFrequency(1)
+
+    edge.joint = joint
+
+    -- edges are non directed, so ensure my edge matrix reference this
+    -- edge from the perspective of both verticies
+    self.edges[vi][vj] = edge
+    self.edges[vj][vi] = edge
+end
+
+---- util ----
+
+-- https://www.mathopenref.com/coordpolygonarea2.html
+function PolygonBody:getArea()
+
+    local area = 0 -- Accumulates area
+    local verts = self.verticies
+    local numpoints = #verts
+    local j = numpoints
+
+    for i=1, numpoints do
+        local segment_area = (verts[j].x + verts[i].x) * (verts[j].y - verts[i].y)
+        area = area + segment_area
+        j = i  -- j is previous vertex to i
+    end
+
+    return area / 2
+end
+
+function PolygonBody:getPosition()
+    local cx, cy, N = 0, 0, 0
+
+    for _, vertex in pairs(self.verticies) do
+        N = N + 1
+        cx = cx + vertex.x
+        cy = cy + vertex.y
+    end
+
+    local x,y = cx / N, cy / N
+
+    return x,y
 end

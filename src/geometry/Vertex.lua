@@ -22,19 +22,31 @@ function Vertex:init(def)
 
     self.body:setUserData(self)
 
-    --joint =
+    self.forces = {}
+    self.norm = Vector(0,0)
 end
 
 function Vertex:update(dt)
 
+    --TODO consolidate forces
+    -- for _, f in ipairs(forces) do fnet = fnet + f end
+    local x,y = self.x, self.y
+    local fnet = Vector.zero
+
     if self.dragging.active and love.mouse.isDown(1) then
-        local x,y = self.x, self.y
         local cx, cy = love.mouse.getPosition( )
         local dx, dy = cx-x, cy-y
         self.body:setPosition(x + dx, y + dy)
     else
-        self.dragging.active = false
+        if self.dragging.active then
+            self.dragging.active = false end
+
+        --for _, f in ipairs(self.forces) do fnet = fnet + f end
+        --local dx, dy = fnet.x * dt, fnet.y * dt
+        --self.body:setPosition(x + dx, y + dy)
     end
+
+    self.forces = {}
 
     self.x, self.y = self.body:getPosition()
 end
@@ -48,8 +60,9 @@ function Vertex:render()
     love.graphics.setColor(vcol)
     local cx, cy = self.body:getPosition()
     love.graphics.circle("line", cx, cy, VERTEX_RADIUS)
-end
 
+    love.graphics.line(cx, cy, self.norm.x + cx, self.norm.y + cy)
+end
 
 function Vertex:__tostring()
     local s = 'vertex'..self.id.. ' ('.. string.format("%.3f", self.x)

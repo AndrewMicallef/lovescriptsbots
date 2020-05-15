@@ -7,12 +7,17 @@ function love.load()
     love.window.setTitle('Artificial Life')
 
     -- instantiate the world
-    world = love.physics.newWorld(0,0, true)
+    world = love.physics.newWorld(0,10, true)
+
+    world_bounds = {}
+    world_bounds.body = love.physics.newBody(world, 0, 0, 'static')
+    world_bounds.shape = love.physics.newChainShape(true, {0,0, 0,HEIGHT, WIDTH, HEIGHT, WIDTH, 0})
+    world_bounds.fixture = love.physics.newFixture(world_bounds.body, world_bounds.shape)
 
     -- spawn agents
     agent = Dummy{world=world,
                   pos=Vector.new(WIDTH/2, HEIGHT/2),
-                  res=12
+                  res=10
               }
 end
 
@@ -20,7 +25,7 @@ function love.update(dt)
 
     agent:update(dt)
 
-    --world:update(dt)
+    world:update(dt)
 end
 
 

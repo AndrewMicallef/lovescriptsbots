@@ -23,6 +23,7 @@ end
 
 function Dummy:update(dt)
     self.body:update(dt)
+    self.pos = Vector(self.body:getPosition())
 end
 
 function Dummy:render()
