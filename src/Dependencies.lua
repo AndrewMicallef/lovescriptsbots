@@ -10,6 +10,7 @@ require 'src/constants'
 
 require 'src/geometry/vertex'
 require 'src/geometry/PolygonBody'
+require 'src/geometry/Membrane'
 
 
 require 'src/Dummy'

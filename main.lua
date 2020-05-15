@@ -9,6 +9,8 @@ function love.load()
     -- instantiate the world
     world = love.physics.newWorld(0,0, true)
 
+    ox, oy = unpack({0,0,1,2,3,4})
+    print(ox, oy)
     -- spawn agents
     agent = Dummy{world=world,
                   pos=Vector.new(WIDTH/2, HEIGHT/2),

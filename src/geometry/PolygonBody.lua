@@ -15,15 +15,15 @@ function PolygonBody:init(parent)
     self.verticies = {}
     self.edges = {}
 
-    --[[
+    ----[[
     local points = { [1] = {0,0},
-                     [2] = {0.3, 0},
-                     [3] = {0.3, 0.2},
-                     [4] = {0.2, 0.4},
+                     [2] = {0.45, 0},
+                     [3] = {0.45, 0.2},
+                     [4] = {0.2, 0.3},
                      [5] = {0.5, 0.5},
-                     [6] = {0.8, 0.4},
-                     [7] = {0.7, 0.2},
-                     [8] = {0.7, 0},
+                     [6] = {0.8, 0.3},
+                     [7] = {0.55, 0.2},
+                     [8] = {0.55, 0},
                      [9] = {1, 0},
                      [10] = {0.5, 1},
                  }
@@ -42,6 +42,8 @@ function PolygonBody:init(parent)
 
     for i, point in ipairs(points) do
         local x,y = unpack(point)
+        x = (x-.5)*230 + self.pos.x
+        y = (y-.5)*230 + self.pos.y
         self.verticies[i] = Vertex{x=x, y=y,
                                     parent=self,
                                     id = i
@@ -51,7 +53,7 @@ function PolygonBody:init(parent)
     for i, edge in ipairs(edges) do
         self.edges[edge] = true
     end
-    ]]
+    --]]
     --[[ generate a ring of verticies
     for i=1, self.res do
         local e1 = i-1
@@ -156,27 +158,43 @@ end
 
 
 function PolygonBody:update(dt)
-    --[[
+
     local newedges = {}
     local removeedges = {}
-    for edge1, _joint in pairs(self.edges) do
+
+    -- distance between unconnected verticies is less than threshold
+    -- calulate the convex hull and redistribute verts to it's perimeter!
+    -- AND
+
+    for edge1, _joint1 in pairs(self.edges) do
         local A, B = unpack(edge1)
         local vA, vB = self.verticies[A], self.verticies[B]
-        local dAB = math.abs(vA.x - vB.x) + math.abs(vA.y - vB.y)
+        local dAB = ((vA.x - vB.x)^2 + (vA.y - vB.y)^2)^0.5
 
-        for edge2, _joint in pairs(self.edges) do
-            if edge2 == edge1 then goto continue end
+        for edge2, _joint2 in pairs(self.edges) do
 
             local C, D = unpack(edge2)
+            if A == C or A == D or B == C or B == D then goto continue end
+
             local vC, vD = self.verticies[C], self.verticies[D]
-            local dCD = math.abs(vC.x - vD.x) + math.abs(vC.y - vD.y)
+            local dCD = ((vC.x - vD.x)^2 + (vC.y - vD.y)^2)^0.5
 
-            dAC = math.abs(vC.x - vA.x) + math.abs(vC.y - vA.y)
-            dAD = math.abs(vD.x - vA.x) + math.abs(vD.y - vA.y)
+            dAC = ((vC.x - vA.x)^2 + (vC.y - vA.y)^2)^0.5
+            dAD = ((vD.x - vA.x)^2 + (vD.y - vA.y)^2)^0.5
+            dBC = ((vB.x - vC.x)^2 + (vB.y - vC.y)^2)^0.5
+            dBD = ((vB.x - vD.x)^2 + (vB.y - vD.y)^2)^0.5
 
-            dBC = math.abs(vB.x - vC.x) + math.abs(vB.y - vC.y)
-            dBD = math.abs(vB.x - vD.x) + math.abs(vB.y - vD.y)
+            if math.abs(dAD - dBC) < 10 then
+                edge1.col = {1,0,1,1}
+                edge2.col = {1,0,1,1}
+            else
+                edge1.col = nil
+                edge2.col = nil
+            end
 
+
+
+            --[[
             if dAB > dAC and dAB > dBD then
                 newedges[Edge(A,C)] = true
                 newedges[Edge(B,D)] = true
@@ -188,6 +206,7 @@ function PolygonBody:update(dt)
                 removeedges[Edge(A,B)] = true
                 removeedges[Edge(C,D)] = true
             end
+            --]]
             ::continue::
         end
     end
@@ -201,7 +220,7 @@ function PolygonBody:update(dt)
             self:linkEdge(edge)
         end
     end
-    ]]
+    --]]
     for _, vertex in pairs(self.verticies) do
         vertex:update(dt)
     end
@@ -218,10 +237,58 @@ function PolygonBody:render()
     love.graphics.setColor(ecol)
     for _, joint in pairs(self.edges) do
         --TODO draw edge
+        if _.col then
+            love.graphics.setColor(_.col)
+        else
+            love.graphics.setColor(ecol)
+        end
         love.graphics.line(joint:getAnchors())
     end
 
     for i, vertex in ipairs(self.verticies) do
         vertex:render()
     end
+end
+
+
+function ccw(a,b,c)
+    return (b.x - a.x) * (c.y - a.y) > (b.y - a.y) * (c.x - a.x)
+end
+
+function pop_back(ta)
+    table.remove(ta,#ta)
+    return ta
+end
+
+function convexHull(pl)
+    --pl is assumed to be a table of points with x and y fields
+    if #pl == 0 then
+        return {}
+    end
+    table.sort(pl, function(left,right)
+        return left.x < right.x
+    end)
+
+    local h = {}
+
+    -- lower hull
+    for i,pt in pairs(pl) do
+        while #h >= 2 and not ccw(h[#h-1], h[#h], pt) do
+            table.remove(h,#h)
+        end
+        table.insert(h,pt)
+    end
+
+    -- upper hull
+    local t = #h + 1
+    for i=#pl, 1, -1 do
+        local pt = pl[i]
+        while #h >= t and not ccw(h[#h-1], h[#h], pt) do
+            table.remove(h,#h)
+        end
+        table.insert(h,pt)
+    end
+
+    table.remove(h,#h)
+    return h
 end
