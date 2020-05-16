@@ -71,9 +71,9 @@ function PolygonBody:render()
             local edge = self.edges[i][j]
             if not edge then goto continue end
             --TODO draw edge
-            --local x0,y0, x1,y1= edge.joint:getAnchors()
+            local x0,y0, x1,y1= edge.joint:getAnchors()
             --local r = x0 - x1
-            --love.graphics.line(x0,y0,x1,y1)
+            love.graphics.line(x0,y0,x1,y1)
             --love.graphics.circle('line', x0,y0,r)
             ::continue::
         end
@@ -117,13 +117,13 @@ function PolygonBody:linkEdge(vi,vj)
 
     local edge = {isedge = true}
     --newDistanceJoint(body1, body2, x1, y1, x2, y2, collideConnected)
-    --local joint = love.physics.newDistanceJoint(vert1.body, vert2.body,
-    --                                            x1, y1, x2, y2, true)
-    --joint:setDampingRatio(.25)
-    --joint:setFrequency(2)
+    local joint = love.physics.newDistanceJoint(vert1.body, vert2.body,
+                                                x1, y1, x2, y2, true)
+    joint:setDampingRatio(.25)
+    joint:setFrequency(2)
     --joint:setLength(30)
 
-    edge.joint = true--joint
+    edge.joint = joint
 
     -- edges are non directed, so ensure my edge matrix reference this
     -- edge from the perspective of both verticies
