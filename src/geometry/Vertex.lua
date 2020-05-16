@@ -42,7 +42,7 @@ function Vertex:update(dt)
             self.dragging.active = false end
 
         local fnet = Vector.zero
-        for _, f in ipairs(self.forces) do
+        for _, f in pairs(self.forces) do
             fnet = fnet + f.force
         end
         self.body:applyLinearImpulse(fnet.x, fnet.y)
@@ -65,17 +65,21 @@ function Vertex:render()
 
     --love.graphics.line(cx, cy, self.norm.x + cx, self.norm.y + cy)
     love.graphics.setColor(1,1,1,1)
-    local fnet = Vector.zero
-    for _, f in pairs(self.forces) do
-        local _ = love.graphics.getColor()
-        if _ ~= f.col then love.graphics.setColor(f.col) end
-        local force = f.force
-        force = force / 10
-        fnet = fnet + force
-        love.graphics.line(cx, cy, (force.x*5 + cx), (force.y*5 + cy))
+
+    if self.isselected then
+        local fnet = Vector.zero
+        for _, f in pairs(self.forces) do
+            local _ = love.graphics.getColor()
+            if _ ~= f.col then love.graphics.setColor(f.col) end
+            local force = f.force
+            force = force / 10
+            fnet = fnet + force
+            love.graphics.line(cx, cy, (force.x*1e5 + cx),
+                                        (force.y*1e5 + cy))
+        end
+        love.graphics.setColor(1,0,0,1)
+        love.graphics.line(cx, cy, fnet.x + cx, fnet.y + cy)
     end
-    love.graphics.setColor(1,0,0,1)
-    love.graphics.line(cx, cy, fnet.x + cx, fnet.y + cy)
 end
 
 function Vertex:__tostring()

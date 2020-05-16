@@ -7,7 +7,7 @@ function love.load()
     love.window.setTitle('Artificial Life')
 
     -- instantiate the world
-    world = love.physics.newWorld(0,10, true)
+    world = love.physics.newWorld(0,0, true)
 
     world_bounds = {}
     world_bounds.body = love.physics.newBody(world, 0, 0, 'static')
@@ -17,7 +17,7 @@ function love.load()
     -- spawn agents
     agent = Dummy{world=world,
                   pos=Vector.new(WIDTH/2, HEIGHT/2),
-                  res=10
+                  res=50
               }
 end
 

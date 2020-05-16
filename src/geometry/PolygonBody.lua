@@ -47,39 +47,14 @@ end
 
 
 function PolygonBody:update(dt)
-    invdt = 1/dt
-    -- pressure is negative when area is smaller than internalvol
-    local pressure = (1 - (self:getArea() - self.internal_vol) / self.internal_vol) * 20
-    --print(pressure)
+
     self.pos = Vector(self:getPosition())
 
-
-    -- surface normal is in the direction opposite the pull of the two springs
-    for i, vertex in ipairs(self.verticies) do
-        vertex.forces = {}
-        local x0, y0 = vertex.x, vertex.y
-
-        local edges = {}
-        local normvec = Vector(0, 0)
-        for j, edge in pairs(self.edges[i]) do
-            local x1,y1 = self.verticies[j].x, self.verticies[j].y
-            local sx, sy = edge.joint:getReactionForce( invdt )
-            normvec = normvec + Vector(sx, sy)
-        end
-        vertex.norm = normvec
-        local pdir = (Vector(x0, y0) - self.pos):normalized()
-        local pforce = pdir * pressure --/ self.res
-        --vertex.body:applyLinearImpulse(pforce.x, pforce.y)
-
-        vertex.forces['pressure'] = {force=pforce, col={0,1,0,1}}
-        vertex.forces['surface'] = {force=normvec, col={1,0,1,1}}
-    end
+    self:calcPressure(PRESSURE_CONSTANT)
 
     for i, vertex in ipairs(self.verticies) do
         vertex:update(dt)
     end
-
-
 end
 
 function PolygonBody:render()
@@ -96,9 +71,9 @@ function PolygonBody:render()
             local edge = self.edges[i][j]
             if not edge then goto continue end
             --TODO draw edge
-            local x0,y0, x1,y1= edge.joint:getAnchors()
-            local r = x0 - x1
-            love.graphics.line(x0,y0,x1,y1)
+            --local x0,y0, x1,y1= edge.joint:getAnchors()
+            --local r = x0 - x1
+            --love.graphics.line(x0,y0,x1,y1)
             --love.graphics.circle('line', x0,y0,r)
             ::continue::
         end
@@ -142,13 +117,13 @@ function PolygonBody:linkEdge(vi,vj)
 
     local edge = {isedge = true}
     --newDistanceJoint(body1, body2, x1, y1, x2, y2, collideConnected)
-    local joint = love.physics.newDistanceJoint(vert1.body, vert2.body,
-                                                x1, y1, x2, y2, true)
-    joint:setDampingRatio(0.01)
-    joint:setFrequency(1)
-    joint:setLength(30)
+    --local joint = love.physics.newDistanceJoint(vert1.body, vert2.body,
+    --                                            x1, y1, x2, y2, true)
+    --joint:setDampingRatio(.25)
+    --joint:setFrequency(2)
+    --joint:setLength(30)
 
-    edge.joint = joint
+    edge.joint = true--joint
 
     -- edges are non directed, so ensure my edge matrix reference this
     -- edge from the perspective of both verticies
@@ -187,4 +162,57 @@ function PolygonBody:getPosition()
     local x,y = cx / N, cy / N
 
     return x,y
+end
+
+function PolygonBody:calcPressure(PRESSURE_CONSTANT)
+
+    -- make a global for the specific pwave, this is referenced
+    -- inside pressureRayCallback... an inelegant solution methinks
+    pwave = {
+            hit = nil,
+            target = nil,
+            fixture = nil,
+            fraction = nil
+    }
+
+    for i, this_vertex in ipairs(self.verticies) do
+        local xi,yi = this_vertex.x, this_vertex.y
+        for j, other_vertex in ipairs(self.verticies) do
+            if i == j then goto continue end
+            local xj,yj = other_vertex.x, other_vertex.y
+
+            pwave.target = other_vertex.fixture
+            world:rayCast(xi, yi, xj, yj, pressureRayCallback)
+
+            if pwave.hit then
+                -- 1. calcualte the force based on distance
+                local dist = math.sqrt((xi-xj)^2 + (yi-yj)^2)
+                local pmag = PRESSURE_CONSTANT / math.max(dist, 0.00001)^2
+                local force = Vector(xi-xj, yi-yj):normalized() * pmag
+
+                this_vertex.forces['pressure' .. j] = {force=force,
+                                                col = {1,1,1,1}}
+                pwave = {}
+            end
+            ::continue::
+        end
+    end
+end
+
+function pressureRayCallback(fixture, x, y, xn, yn, fraction)
+
+    -- select only the first hit in a table of raycast hits
+    if pwave.hit then
+        if fraction < pwave.fraction then
+            pwave.hit = true
+            pwave.fraction = fraction
+            pwave.fixture = fixture
+        end
+    else
+        pwave.hit = true
+        pwave.fraction = fraction
+        pwave.fixture = fixture
+    end
+
+	return fraction -- Continues with ray cast through all shapes infront of this one.
 end

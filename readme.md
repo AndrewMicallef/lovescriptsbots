@@ -42,4 +42,7 @@ in the [love2D] engine.
    and shrink. For the moment I'm just going to assume that this change is
    marginal, and can be safely ignored.
 
-   
+On reflection it seams that I could model pressure as a force exerted by each
+vertex on every other connected vertex. I might trace a ray from each vertex to
+all the others, and if the ray can see the other vertex, then I can add a force
+inversely proportional to it's length to the contacted vertex.
