@@ -47,28 +47,33 @@ end
 
 
 function PolygonBody:update(dt)
+    invdt = 1/dt
     -- pressure is negative when area is smaller than internalvol
-    local pressure = (self:getArea() - self.internal_vol) * PRESSURE_CONSTANT
+    local pressure = (1 - (self:getArea() - self.internal_vol) / self.internal_vol) * 20
     --print(pressure)
     self.pos = Vector(self:getPosition())
 
 
     -- surface normal is in the direction opposite the pull of the two springs
     for i, vertex in ipairs(self.verticies) do
+        vertex.forces = {}
         local x0, y0 = vertex.x, vertex.y
 
         local edges = {}
         local normvec = Vector(0, 0)
         for j, edge in pairs(self.edges[i]) do
             local x1,y1 = self.verticies[j].x, self.verticies[j].y
-            normvec = normvec + Vector(x1-x0, y1-y0)
+            local sx, sy = edge.joint:getReactionForce( invdt )
+            normvec = normvec + Vector(sx, sy)
         end
         vertex.norm = normvec
-        local pforce = -normvec * pressure / self.res
-        vertex.body:applyLinearImpulse(pforce.x, pforce.y)
+        local pdir = (Vector(x0, y0) - self.pos):normalized()
+        local pforce = pdir * pressure --/ self.res
+        --vertex.body:applyLinearImpulse(pforce.x, pforce.y)
+
+        vertex.forces['pressure'] = {force=pforce, col={0,1,0,1}}
+        vertex.forces['surface'] = {force=normvec, col={1,0,1,1}}
     end
-
-
 
     for i, vertex in ipairs(self.verticies) do
         vertex:update(dt)
@@ -98,6 +103,10 @@ function PolygonBody:render()
             ::continue::
         end
     end
+
+    love.graphics.setColor(1,1,1,1)
+    love.graphics.circle('line', self.pos.x, self.pos.y, 4)
+    love.graphics.points(self.pos.x, self.pos.y)
 
     for i, vertex in ipairs(self.verticies) do
         vertex:render()
@@ -135,8 +144,9 @@ function PolygonBody:linkEdge(vi,vj)
     --newDistanceJoint(body1, body2, x1, y1, x2, y2, collideConnected)
     local joint = love.physics.newDistanceJoint(vert1.body, vert2.body,
                                                 x1, y1, x2, y2, true)
-    joint:setDampingRatio(0)
+    joint:setDampingRatio(0.01)
     joint:setFrequency(1)
+    joint:setLength(30)
 
     edge.joint = joint
 
