@@ -15,9 +15,13 @@ function love.load()
     world_bounds.fixture = love.physics.newFixture(world_bounds.body, world_bounds.shape)
 
     -- spawn agents
-    agent = Dummy{world=world,
+    d1 = Dummy{world=world,
                   pos=Vector.new(WIDTH/2, HEIGHT/2),
                   res=25
+              }
+    d2 = Dummy{world=world,
+                  pos=Vector.new(WIDTH/2+250, HEIGHT/2+50),
+                  res=20
               }
 
     entities = {}
@@ -26,9 +30,10 @@ function love.load()
     ball.body = love.physics.newBody(world, 5, HEIGHT/2, 'dynamic')
     ball.shape = love.physics.newCircleShape(10)
     ball.fixture =love.physics.newFixture(ball.body, ball.shape)
-    ball.body:applyLinearImpulse(100, 0)
+    ball.body:applyLinearImpulse(300, 0)
 
-    entities[agent] = agent
+    entities[d1] = d1
+    entities[d2] = d2
     entities[ball] = ball
 
 end
