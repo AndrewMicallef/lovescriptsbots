@@ -10,6 +10,7 @@ function Vertex:init(def)
     self.id = def.id --some unique ID
     self.x = def.x
     self.y = def.y
+    self.angle = def.angle or 0
     self.edges = def.edges or {}
     self.edgelist = {}
 
@@ -17,10 +18,11 @@ function Vertex:init(def)
     self.dragging = {active = false, diffX = 0, diffY = 0}
 
     self.body = love.physics.newBody(self.world, self.x, self.y, def.type or 'dynamic')
-    self.shape = love.physics.newCircleShape(VERTEX_RADIUS)
+    self.shape = love.physics.newRectangleShape(0, 0, 2*VERTEX_RADIUS, VERTEX_RADIUS)
     self.fixture = love.physics.newFixture(self.body, self.shape)
-
     self.body:setUserData(self)
+    self.body:setAngle(self.angle+math.pi/2)
+
 
     self.forces = {}
     self.norm = Vector(0,0)
@@ -60,8 +62,7 @@ function Vertex:render()
         ecol = {1,0,1,1}
     end
     love.graphics.setColor(vcol)
-    local cx, cy = self.body:getPosition()
-    love.graphics.circle("fill", cx, cy, VERTEX_RADIUS)
+    love.graphics.polygon("line", self.body:getWorldPoints(self.shape:getPoints()))
 
     --love.graphics.line(cx, cy, self.norm.x + cx, self.norm.y + cy)
     love.graphics.setColor(1,1,1,1)

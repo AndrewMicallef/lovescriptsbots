@@ -17,20 +17,40 @@ function love.load()
     -- spawn agents
     agent = Dummy{world=world,
                   pos=Vector.new(WIDTH/2, HEIGHT/2),
-                  res=50
+                  res=25
               }
+
+    entities = {}
+
+    ball = {}
+    ball.body = love.physics.newBody(world, 5, HEIGHT/2, 'dynamic')
+    ball.shape = love.physics.newCircleShape(10)
+    ball.fixture =love.physics.newFixture(ball.body, ball.shape)
+    ball.body:applyLinearImpulse(100, 0)
+
+    entities[agent] = agent
+    entities[ball] = ball
+
 end
 
 function love.update(dt)
 
-    agent:update(dt)
+    for _, v in pairs(entities) do
+        if v.update then v:update(dt) end
+    end
 
     world:update(dt)
 end
 
 
 function love.draw()
-    agent:render()
+    for _, v in pairs(entities) do
+        if v.render then v:render(dt) end
+    end
+
+    local cx, cy = ball.body:getPosition()
+    love.graphics.setColor(1,1,1,1)
+    love.graphics.circle('fill', cx, cy, 10)
 end
 
 

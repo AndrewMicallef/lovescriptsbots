@@ -46,3 +46,16 @@ On reflection it seams that I could model pressure as a force exerted by each
 vertex on every other connected vertex. I might trace a ray from each vertex to
 all the others, and if the ray can see the other vertex, then I can add a force
 inversely proportional to it's length to the contacted vertex.
+
+Ray tracing is probably overkill, at this point I get reasonable results without
+taking occlusion into account.
+
+Next step is to ensure the membrane functions as a barrier. To do this I will
+use edge shapes between connected verticies to construct the cell wall. The
+edges should be masked to ignore the connected verticies, to account for the
+fact that the edge length is variable.
+
+So a13X_B#6771 on discord suggested stringing the edges together via rectangles
+Each edge would be a relativly small rectange, strung together with two other
+partially overlapping rectangles. These would not collide with immediate
+connections, but be available to collide with all others.

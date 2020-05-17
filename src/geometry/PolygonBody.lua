@@ -13,7 +13,13 @@ function PolygonBody:init(parent)
     self.radius = parent.radius
 
     self.verticies = {}
-    self.edges = {} for i=1, self.res do self.edges[i] = {} end
+    self.edges = {}
+    for i=1, self.res do
+        self.edges[i] = {}
+        for j=1, self.res do
+            self.edges[i][j] = nil
+        end
+    end
 
     -- generate a ring of verticies
     for i=1, self.res do
@@ -25,13 +31,13 @@ function PolygonBody:init(parent)
         self.edges[i][e1] = true
         self.edges[i][e2] = true
 
-
         local phi = i/self.res * math.pi * 2
         local cx = math.cos(phi) * self.radius + self.pos.x
         local cy = math.sin(phi) * self.radius + self.pos.y
         self.verticies[i] = Vertex{x=cx, y=cy,
                                     parent=self,
-                                    id = i
+                                    id = i,
+                                    angle = phi
                                 }
     end
 
@@ -113,15 +119,25 @@ function PolygonBody:linkEdge(vi,vj)
     local vert2 = self.verticies[vj]
 
     local x1, y1 = vert1.body:getPosition()
+    local phi1 = vert1.body:getAngle()
     local x2, y2 = vert2.body:getPosition()
+    local phi2 = vert2.body:getAngle()
 
+    -- x,y mean
     local edge = {isedge = true}
+
+    -- vertexes are anchored at centre - w/4
+    local w = 2*VERTEX_RADIUS
+    local ax1, ay1 = x1 - math.cos(phi1) * w/4, y1 - math.sin(phi1) * w/4
+    local ax2, ay2 = x2 + math.cos(phi2) * w/4, y2 + math.sin(phi2) * w/4
+
+    -- connect rectangles centre to centre
     --newDistanceJoint(body1, body2, x1, y1, x2, y2, collideConnected)
     local joint = love.physics.newDistanceJoint(vert1.body, vert2.body,
-                                                x1, y1, x2, y2, true)
+                                                ax1, ay1, ax2, ay2, false)
     joint:setDampingRatio(.25)
     joint:setFrequency(2)
-    --joint:setLength(30)
+    joint:setLength(VERTEX_RADIUS/2)
 
     edge.joint = joint
 
