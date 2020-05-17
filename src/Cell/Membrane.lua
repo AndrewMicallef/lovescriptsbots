@@ -115,6 +115,12 @@ function Membrane:linkEdge(vi,vj)
         return
     end
 
+    -- reoorders the final vertex to make links in appropriate place
+    if vj == 1 and vi == self.res then
+        vj = self.res
+        vi = 1
+    end
+
     local vert1 = self.verticies[vi]
     local vert2 = self.verticies[vj]
 
