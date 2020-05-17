@@ -7,8 +7,9 @@ require 'src.constants'
 
 --building blocks
 
-require 'src.geometry.Vertex'
-require 'src.geometry.PolygonBody'
+require 'src.Cell.Vertex'
+require 'src.Cell.Membrane'
+require 'src.Cell.Organelle'
 
 require 'src.Dummy'
 

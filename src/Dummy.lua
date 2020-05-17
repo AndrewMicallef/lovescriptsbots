@@ -9,19 +9,29 @@ function Dummy:init(def)
 
     self.res = def.res or 8
     self.radius = 90
-    self.body = PolygonBody(self)
+    self.body = Membrane(self)
     self.verticies = self.body.verticies
+
+    self.organs = {}
+    for i=1, 3 do
+        local organelle = Organelle(self)
+        self.organs[organelle] = organelle
+    end
 
     -- not sure if I want polygon body to mimic b2d shapes and fixtures...
     -- I think I might want to do this for collision detection
-    --self.shape = PolygonBody:getShape()
-    --self.fixture = PolygonBody:getFixture()
+    --self.shape = Membrane:getShape()
+    --self.fixture = Membrane:getFixture()
 
     -- collection of the traits that are able to be mutated
     -- self.mutable_traits = {}
 end
 
 function Dummy:update(dt)
+
+    for _, o in pairs(self.organs) do
+        o:update(dt)
+    end
     self.body:update(dt)
     self.pos = Vector(self.body:getPosition())
 end
@@ -34,6 +44,10 @@ function Dummy:render()
 
     --TODO reconsider this
     self.body:render()
+
+    for _, o in pairs(self.organs) do
+        o:render()
+    end
 end
 
 --------------------------------------------------------------------------------
@@ -48,8 +62,8 @@ function Dummy:getPoints()
             2   4     3
             3   6     5
         ]]
-        points[ix] = vertex.x
-        points[iy] = vertex.y
+        points[ix] = vertex.pos.x
+        points[iy] = vertex.pos.y
     end
     return points
 end

@@ -1,10 +1,10 @@
-PolygonBody = Class{}
+Membrane = Class{}
 
 --[[
-A PolygonBody is a physical object defined by a collection of vertices,
+A Membrane is a physical object defined by a collection of vertices,
 linked via distance joints
 ]]
-function PolygonBody:init(parent)
+function Membrane:init(parent)
     self.parent = parent
     self.pos = parent.pos
     self.world = parent.world
@@ -52,7 +52,7 @@ function PolygonBody:init(parent)
 end
 
 
-function PolygonBody:update(dt)
+function Membrane:update(dt)
 
     self.pos = Vector(self:getPosition())
 
@@ -63,7 +63,7 @@ function PolygonBody:update(dt)
     end
 end
 
-function PolygonBody:render()
+function Membrane:render()
     local vcol, ecol = {0,1,1,1}, {1,1,0,1}
     if self.isselected then
         vcol = {1,1,0,1}
@@ -94,7 +94,7 @@ function PolygonBody:render()
     end
 end
 
-function PolygonBody:initEdges()
+function Membrane:initEdges()
     for j=1, self.res do
         for i=1, self.res do
 
@@ -105,7 +105,7 @@ function PolygonBody:initEdges()
     end
 end
 
-function PolygonBody:linkEdge(vi,vj)
+function Membrane:linkEdge(vi,vj)
 
     if vi == vj then
         self.edges[vi][vj] = nil
@@ -135,8 +135,8 @@ function PolygonBody:linkEdge(vi,vj)
     --newDistanceJoint(body1, body2, x1, y1, x2, y2, collideConnected)
     local joint = love.physics.newDistanceJoint(vert1.body, vert2.body,
                                                 ax1, ay1, ax2, ay2, false)
-    joint:setDampingRatio(.25)
-    joint:setFrequency(2)
+    joint:setDampingRatio(.15)
+    joint:setFrequency(60)
     joint:setLength(VERTEX_RADIUS/2)
 
     edge.joint = joint
@@ -150,7 +150,7 @@ end
 ---- util ----
 
 -- https://www.mathopenref.com/coordpolygonarea2.html
-function PolygonBody:getArea()
+function Membrane:getArea()
 
     local area = 0 -- Accumulates area
     local verts = self.verticies
@@ -158,7 +158,7 @@ function PolygonBody:getArea()
     local j = numpoints
 
     for i=1, numpoints do
-        local segment_area = (verts[j].x + verts[i].x) * (verts[j].y - verts[i].y)
+        local segment_area = (verts[j].pos.x + verts[i].pos.x) * (verts[j].pos.y - verts[i].pos.y)
         area = area + segment_area
         j = i  -- j is previous vertex to i
     end
@@ -166,13 +166,13 @@ function PolygonBody:getArea()
     return area / 2
 end
 
-function PolygonBody:getPosition()
+function Membrane:getPosition()
     local cx, cy, N = 0, 0, 0
 
     for _, vertex in pairs(self.verticies) do
         N = N + 1
-        cx = cx + vertex.x
-        cy = cy + vertex.y
+        cx = cx + vertex.pos.x
+        cy = cy + vertex.pos.y
     end
 
     local x,y = cx / N, cy / N
@@ -180,55 +180,23 @@ function PolygonBody:getPosition()
     return x,y
 end
 
-function PolygonBody:calcPressure(PRESSURE_CONSTANT)
+function Membrane:calcPressure(PRESSURE_CONSTANT)
 
     -- make a global for the specific pwave, this is referenced
     -- inside pressureRayCallback... an inelegant solution methinks
-    pwave = {
-            hit = nil,
-            target = nil,
-            fixture = nil,
-            fraction = nil
-    }
-
     for i, this_vertex in ipairs(self.verticies) do
-        local xi,yi = this_vertex.x, this_vertex.y
+        local xi,yi = this_vertex.pos.x, this_vertex.pos.y
         for j, other_vertex in ipairs(self.verticies) do
             if i == j then goto continue end
-            local xj,yj = other_vertex.x, other_vertex.y
+            local xj,yj = other_vertex.pos.x, other_vertex.pos.y
 
-            pwave.target = other_vertex.fixture
-            world:rayCast(xi, yi, xj, yj, pressureRayCallback)
 
-            if pwave.hit then
-                -- 1. calcualte the force based on distance
-                local dist = math.sqrt((xi-xj)^2 + (yi-yj)^2)
-                local pmag = PRESSURE_CONSTANT / math.max(dist, 0.00001)^2
-                local force = Vector(xi-xj, yi-yj):normalized() * pmag
+            -- 1. calcualte the force based on distance
+            local dist = math.sqrt((xi-xj)^2 + (yi-yj)^2)
+            local pmag = PRESSURE_CONSTANT / math.max(dist, 0.00001)^2
+            local force = Vector(xi-xj, yi-yj):normalized() * pmag
 
-                this_vertex.forces['pressure' .. j] = {force=force,
-                                                col = {1,1,1,1}}
-                pwave = {}
-            end
             ::continue::
         end
     end
-end
-
-function pressureRayCallback(fixture, x, y, xn, yn, fraction)
-
-    -- select only the first hit in a table of raycast hits
-    if pwave.hit then
-        if fraction < pwave.fraction then
-            pwave.hit = true
-            pwave.fraction = fraction
-            pwave.fixture = fixture
-        end
-    else
-        pwave.hit = true
-        pwave.fraction = fraction
-        pwave.fixture = fixture
-    end
-
-	return fraction -- Continues with ray cast through all shapes infront of this one.
 end

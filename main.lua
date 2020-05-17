@@ -19,22 +19,11 @@ function love.load()
                   pos=Vector.new(WIDTH/2, HEIGHT/2),
                   res=25
               }
-    d2 = Dummy{world=world,
-                  pos=Vector.new(WIDTH/2+250, HEIGHT/2+50),
-                  res=20
-              }
 
     entities = {}
 
-    ball = {}
-    ball.body = love.physics.newBody(world, 5, HEIGHT/2, 'dynamic')
-    ball.shape = love.physics.newCircleShape(10)
-    ball.fixture =love.physics.newFixture(ball.body, ball.shape)
-    ball.body:applyLinearImpulse(300, 0)
-
     entities[d1] = d1
-    entities[d2] = d2
-    entities[ball] = ball
+    --entities[ball] = ball
 
 end
 
@@ -53,17 +42,14 @@ function love.draw()
         if v.render then v:render(dt) end
     end
 
-    local cx, cy = ball.body:getPosition()
-    love.graphics.setColor(1,1,1,1)
-    love.graphics.circle('fill', cx, cy, 10)
 end
 
 
 function love.mousepressed(x, y, button)
     if button == 1
         and selected
-        and x > selected.x - 10 and x < selected.x + 10
-        and y > selected.y - 10 and y < selected.y + 10
+        and x > selected.pos.x - 10 and x < selected.pos.x + 10
+        and y > selected.pos.y - 10 and y < selected.pos.y + 10
     then
     selected.dragging.active = true
     end

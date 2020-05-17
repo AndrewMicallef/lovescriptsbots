@@ -25,7 +25,7 @@ in the [love2D] engine.
 
 1. I think pressure is proportional to the change in area. Initial area is
    referred to as `internal_vol` (**A0**), which will later become a dynamic
-   variable. Current area can be got via `PolygonBody:getArea()` (**A1**).
+   variable. Current area can be got via `Membrane:getArea()` (**A1**).
 
 2. The total pressure should sum to 0 when `A1 == A0`
 
