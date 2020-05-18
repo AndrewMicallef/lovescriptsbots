@@ -191,6 +191,9 @@ function PolygonBody:calcPressure(PRESSURE_CONSTANT)
             fraction = nil
     }
 
+    -- fully linked vertices repel other verticies
+    -- unlinked vertices are attracted to unlinked vertices
+
     for i, this_vertex in ipairs(self.verticies) do
         local xi,yi = this_vertex.x, this_vertex.y
         for j, other_vertex in ipairs(self.verticies) do

@@ -11,8 +11,11 @@ function Vertex:init(def)
     self.id = def.id --some unique ID
     self.pos = Vector(def.x, def.y)
     self.angle = def.angle or 0
-    self.edges = def.edges or {}
-    self.edgelist = {}
+
+    -- maintain a list of connections
+    -- and a count of number of connections
+    self.links = {}
+    self.linkcount = 0
 
     self.isselected = nil
     self.dragging = {active = false, diffX = 0, diffY = 0}
@@ -30,9 +33,7 @@ end
 function Vertex:update(dt)
 
     --TODO consolidate forces
-    -- for _, f in ipairs(forces) do fnet = fnet + f end
     local x,y = self.pos.x, self.pos.y
-    local fnet = Vector.zero
 
     if self.dragging.active and love.mouse.isDown(1) then
         local cx, cy = love.mouse.getPosition( )
@@ -42,30 +43,32 @@ function Vertex:update(dt)
         if self.dragging.active then
             self.dragging.active = false end
 
+        -- iterate through consolidated forces and aggregate into net force vector
         local fnet = Vector.zero
         for _, f in pairs(self.forces) do
             fnet = fnet + f.force
         end
         self.body:applyLinearImpulse(fnet.x, fnet.y)
-        --local dx, dy = fnet.x * dt, fnet.y * dt
-        --self.body:setPosition(x + dx, y + dy)
     end
 
     self.pos.x, self.pos.y = self.body:getPosition()
 end
 
 function Vertex:render()
-    local vcol, ecol = {0,1,1,1}, {1,1,0,1}
+    local fmt = {style='fill', col ={0,1,1,1}}
     if self.isselected then
-        vcol = {1,1,0,1}
-        ecol = {1,0,1,1}
+        fmt.col = {1,1,0,1}
     end
-    love.graphics.setColor(vcol)
-    love.graphics.polygon("line", self.body:getWorldPoints(self.shape:getPoints()))
-
+    if self.linkcount < 2 then
+        fmt.style = 'line'
+    end
+    love.graphics.setColor(fmt.col)
+    love.graphics.polygon(fmt.style, self.body:getWorldPoints(self.shape:getPoints()))
+    if self.isselected then
+        love.graphics.print(self.linkcount, WIDTH/2, HEIGHT/2)
+    end
     --love.graphics.line(cx, cy, self.norm.x + cx, self.norm.y + cy)
-    love.graphics.setColor(1,1,1,1)
-
+    --[[DEBUG for drawing forces
     if self.isselected then
         local fnet = Vector.zero
         local cx, cy = self.body:getPosition()
@@ -81,6 +84,7 @@ function Vertex:render()
         love.graphics.setColor(1,0,0,1)
         love.graphics.line(cx, cy, fnet.x + cx, fnet.y + cy)
     end
+    --]]
 end
 
 function Vertex:__tostring()
@@ -88,4 +92,14 @@ function Vertex:__tostring()
                 .. ', ' ..
                 string.format("%.3f", self.pos.y)..')'
     return s
+end
+
+function Vertex:addLink(other)
+    self.links[other.id] = other
+    self.linkcount = tablelength(self.links)
+end
+
+function Vertex:remLink(other)
+    self.links[other.id] = nil
+    self.linkcount = tablelength(self.links)
 end

@@ -6,6 +6,7 @@ linked via distance joints
 ]]
 
 MAX_DIST = VERTEX_RADIUS*2
+LINK_DIST = VERTEX_RADIUS
 function Membrane:init(parent)
     self.parent = parent
     self.pos = parent.pos
@@ -30,8 +31,8 @@ function Membrane:init(parent)
         if i == self.res then e2 = 1 end
         if i == 1 then e1 = self.res end
 
-        self.edges[i][e1] = true
-        self.edges[i][e2] = true
+        self.edges[i][e1] = {}
+        self.edges[i][e2] = {}
 
         local phi = i/self.res * math.pi * 2
         local cx = math.cos(phi) * self.radius + self.pos.x
@@ -47,10 +48,6 @@ function Membrane:init(parent)
     self:initEdges()
 
     self.internal_vol = self:getArea()
-
-
---    self.area = {base=polygonArea(self.points)}
---    self.area.current = self.area.base
 end
 
 
@@ -116,7 +113,7 @@ function Membrane:linkEdge(vi,vj)
         self.edges[vi][vj] = nil
         return
     -- skip already connected edges
-    elseif type(self.edges[vi][vj]) ~= 'boolean' then
+    elseif self.edges[vi][vj].isedge then
         return
     end
 
@@ -156,6 +153,11 @@ function Membrane:linkEdge(vi,vj)
     -- edge from the perspective of both verticies
     self.edges[vi][vj] = edge
     self.edges[vj][vi] = edge
+
+    -- allow verticies to keep track of their edges
+    vert1:addLink(vert2)
+    vert2:addLink(vert1)
+
 end
 
 ---- util ----
@@ -193,8 +195,8 @@ end
 
 function Membrane:calcPressure(PRESSURE_CONSTANT)
 
-    -- make a global for the specific pwave, this is referenced
-    -- inside pressureRayCallback... an inelegant solution methinks
+    -- fully linked vertices repel other verticies
+    -- unlinked vertices are attracted to unlinked vertices
     for i, this_vertex in ipairs(self.verticies) do
         local xi,yi = this_vertex.pos.x, this_vertex.pos.y
         for j, other_vertex in ipairs(self.verticies) do
@@ -204,8 +206,18 @@ function Membrane:calcPressure(PRESSURE_CONSTANT)
 
             -- 1. calcualte the force based on distance
             local dist = math.sqrt((xi-xj)^2 + (yi-yj)^2)
-            local pmag = PRESSURE_CONSTANT / math.max(dist, 0.00001)^2
+
+            local pmag = PRESSURE_CONSTANT / math.max(dist, 0.0001)^2
+
+            if this_vertex.linkcount < 2 and other_vertex.linkcount < 2 then
+                pmag = - 3*PRESSURE_CONSTANT / math.max(dist, 0.0001)^.8
+            else
+                pmag = PRESSURE_CONSTANT / math.max(dist, 0.0001)^2
+            end
+
             local force = Vector(xi-xj, yi-yj):normalized() * pmag
+
+            this_vertex.forces[other_vertex] = {force=force, col={1,1,1,1}}
 
             ::continue::
         end
@@ -213,41 +225,41 @@ function Membrane:calcPressure(PRESSURE_CONSTANT)
 end
 
 function Membrane:checkMembrane()
-    for j=1, self.res do
-        for i=1, self.res do
-            local edge = self.edges[i][j]
-            if not edge then goto continue end
-            if edge.toremove then goto continue end
 
-            local vert1 = self.verticies[i]
-            local vert2 = self.verticies[j]
+    -- 1. check if the edges have over extended
+    for vi, vertexi in ipairs(self.verticies) do
 
-            local x1, y1 = vert1.body:getPosition()
-            local x2, y2 = vert2.body:getPosition()
+        local xi, yi = vertexi.body:getPosition()
+        for vj, vertexj in ipairs(self.verticies) do
+            if vi == vj then goto continue end
 
-            local r = math.sqrt((x1-x2)^2 + (y1-y2)^2)
+            local vertexj = self.verticies[vj]
+            local xj, yj = vertexj.body:getPosition()
 
-            if r > MAX_DIST then
-                self.edges[i][j].toremove = true
-                self.edges[j][i].toremove = true
+            local r = math.sqrt((xi-xj)^2 + (yi-yj)^2)
+
+            if vertexi.links[vj] and r >= MAX_DIST then
+                local edge = self.edges[vi][vj]
+                if edge.toremove then goto continue end
+                self.edges[vi][vj].toremove = true
+                self.edges[vj][vi].toremove = true
+
+                vertexj:remLink(vertexi)
+            elseif r <= LINK_DIST then
+                self:linkEdge(vi,vj)
             end
-
-            ::continue::
         end
+        ::continue::
     end
 
-    for j=1, self.res do
-        for i=1, self.res do
-            local edge = self.edges[i][j]
-            if not edge then goto continue end
+    for i, _edges in ipairs(self.edges) do
+        for j, edge in ipairs(_edges) do
 
             if edge.toremove then
                 edge.joint:destroy()
                 self.edges[i][j] = nil
                 self.edges[j][i] = nil
             end
-
-            ::continue::
         end
     end
 end
