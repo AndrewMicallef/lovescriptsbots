@@ -59,3 +59,10 @@ So a13X_B#6771 on discord suggested stringing the edges together via rectangles
 Each edge would be a relativly small rectange, strung together with two other
 partially overlapping rectangles. These would not collide with immediate
 connections, but be available to collide with all others.
+
+--------------------------------------------------------------------------------
+
+# Onto Cytoskeleton or Organelles or whatever...
+
+So I'd like my cells to have internal organelles / proteins / enzymes that push
+them around, cut the membrane and repair the membrane.

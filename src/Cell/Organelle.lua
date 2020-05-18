@@ -17,7 +17,7 @@ function Organelle:init(parent)
     self.dragging = {active = false, diffX = 0, diffY = 0}
 
     self.body = love.physics.newBody(self.world, self.pos.x, self.pos.y, 'dynamic')
-    self.shape = love.physics.newCircleShape(VERTEX_RADIUS*2.5)
+    self.shape = love.physics.newCircleShape(VERTEX_RADIUS*1.5)
     self.fixture = love.physics.newFixture(self.body, self.shape)
     self.fixture:setUserData(self)
     self.body:setUserData(self)
@@ -54,5 +54,5 @@ function Organelle:render()
     local cx, cy = self.pos.x, self.pos.y
     love.graphics.setColor(1,0,0,.5)
     if self.isselected then love.graphics.setColor(1,0,0,1) end
-    love.graphics.circle('fill', cx,cy, VERTEX_RADIUS*2.5)
+    love.graphics.circle('fill', cx,cy, VERTEX_RADIUS*1.5)
 end

@@ -1,12 +1,10 @@
-Membrane = Class{}
+PolygonBody = Class{}
 
 --[[
-A Membrane is a physical object defined by a collection of vertices,
+A PolygonBody is a physical object defined by a collection of vertices,
 linked via distance joints
 ]]
-
-MAX_DIST = VERTEX_RADIUS*2
-function Membrane:init(parent)
+function PolygonBody:init(parent)
     self.parent = parent
     self.pos = parent.pos
     self.world = parent.world
@@ -54,7 +52,7 @@ function Membrane:init(parent)
 end
 
 
-function Membrane:update(dt)
+function PolygonBody:update(dt)
 
     self.pos = Vector(self:getPosition())
 
@@ -63,12 +61,9 @@ function Membrane:update(dt)
     for i, vertex in ipairs(self.verticies) do
         vertex:update(dt)
     end
-
-    --check to see if any joints have exceeded max length..
-    self:checkMembrane()
 end
 
-function Membrane:render()
+function PolygonBody:render()
     local vcol, ecol = {0,1,1,1}, {1,1,0,1}
     if self.isselected then
         vcol = {1,1,0,1}
@@ -99,7 +94,7 @@ function Membrane:render()
     end
 end
 
-function Membrane:initEdges()
+function PolygonBody:initEdges()
     for j=1, self.res do
         for i=1, self.res do
 
@@ -110,7 +105,7 @@ function Membrane:initEdges()
     end
 end
 
-function Membrane:linkEdge(vi,vj)
+function PolygonBody:linkEdge(vi,vj)
 
     if vi == vj then
         self.edges[vi][vj] = nil
@@ -118,12 +113,6 @@ function Membrane:linkEdge(vi,vj)
     -- skip already connected edges
     elseif type(self.edges[vi][vj]) ~= 'boolean' then
         return
-    end
-
-    -- reoorders the final vertex to make links in appropriate place
-    if vj == 1 and vi == self.res then
-        vj = self.res
-        vi = 1
     end
 
     local vert1 = self.verticies[vi]
@@ -146,8 +135,8 @@ function Membrane:linkEdge(vi,vj)
     --newDistanceJoint(body1, body2, x1, y1, x2, y2, collideConnected)
     local joint = love.physics.newDistanceJoint(vert1.body, vert2.body,
                                                 ax1, ay1, ax2, ay2, false)
-    joint:setDampingRatio(.15)
-    joint:setFrequency(60)
+    joint:setDampingRatio(.25)
+    joint:setFrequency(2)
     joint:setLength(VERTEX_RADIUS/2)
 
     edge.joint = joint
@@ -161,7 +150,7 @@ end
 ---- util ----
 
 -- https://www.mathopenref.com/coordpolygonarea2.html
-function Membrane:getArea()
+function PolygonBody:getArea()
 
     local area = 0 -- Accumulates area
     local verts = self.verticies
@@ -169,7 +158,7 @@ function Membrane:getArea()
     local j = numpoints
 
     for i=1, numpoints do
-        local segment_area = (verts[j].pos.x + verts[i].pos.x) * (verts[j].pos.y - verts[i].pos.y)
+        local segment_area = (verts[j].x + verts[i].x) * (verts[j].y - verts[i].y)
         area = area + segment_area
         j = i  -- j is previous vertex to i
     end
@@ -177,13 +166,13 @@ function Membrane:getArea()
     return area / 2
 end
 
-function Membrane:getPosition()
+function PolygonBody:getPosition()
     local cx, cy, N = 0, 0, 0
 
     for _, vertex in pairs(self.verticies) do
         N = N + 1
-        cx = cx + vertex.pos.x
-        cy = cy + vertex.pos.y
+        cx = cx + vertex.x
+        cy = cy + vertex.y
     end
 
     local x,y = cx / N, cy / N
@@ -191,63 +180,55 @@ function Membrane:getPosition()
     return x,y
 end
 
-function Membrane:calcPressure(PRESSURE_CONSTANT)
+function PolygonBody:calcPressure(PRESSURE_CONSTANT)
 
     -- make a global for the specific pwave, this is referenced
     -- inside pressureRayCallback... an inelegant solution methinks
+    pwave = {
+            hit = nil,
+            target = nil,
+            fixture = nil,
+            fraction = nil
+    }
+
     for i, this_vertex in ipairs(self.verticies) do
-        local xi,yi = this_vertex.pos.x, this_vertex.pos.y
+        local xi,yi = this_vertex.x, this_vertex.y
         for j, other_vertex in ipairs(self.verticies) do
             if i == j then goto continue end
-            local xj,yj = other_vertex.pos.x, other_vertex.pos.y
+            local xj,yj = other_vertex.x, other_vertex.y
 
+            pwave.target = other_vertex.fixture
+            world:rayCast(xi, yi, xj, yj, pressureRayCallback)
 
-            -- 1. calcualte the force based on distance
-            local dist = math.sqrt((xi-xj)^2 + (yi-yj)^2)
-            local pmag = PRESSURE_CONSTANT / math.max(dist, 0.00001)^2
-            local force = Vector(xi-xj, yi-yj):normalized() * pmag
+            if pwave.hit then
+                -- 1. calcualte the force based on distance
+                local dist = math.sqrt((xi-xj)^2 + (yi-yj)^2)
+                local pmag = PRESSURE_CONSTANT / math.max(dist, 0.00001)^2
+                local force = Vector(xi-xj, yi-yj):normalized() * pmag
 
+                this_vertex.forces['pressure' .. j] = {force=force,
+                                                col = {1,1,1,1}}
+                pwave = {}
+            end
             ::continue::
         end
     end
 end
 
-function Membrane:checkMembrane()
-    for j=1, self.res do
-        for i=1, self.res do
-            local edge = self.edges[i][j]
-            if not edge then goto continue end
-            if edge.toremove then goto continue end
+function pressureRayCallback(fixture, x, y, xn, yn, fraction)
 
-            local vert1 = self.verticies[i]
-            local vert2 = self.verticies[j]
-
-            local x1, y1 = vert1.body:getPosition()
-            local x2, y2 = vert2.body:getPosition()
-
-            local r = math.sqrt((x1-x2)^2 + (y1-y2)^2)
-
-            if r > MAX_DIST then
-                self.edges[i][j].toremove = true
-                self.edges[j][i].toremove = true
-            end
-
-            ::continue::
+    -- select only the first hit in a table of raycast hits
+    if pwave.hit then
+        if fraction < pwave.fraction then
+            pwave.hit = true
+            pwave.fraction = fraction
+            pwave.fixture = fixture
         end
+    else
+        pwave.hit = true
+        pwave.fraction = fraction
+        pwave.fixture = fixture
     end
 
-    for j=1, self.res do
-        for i=1, self.res do
-            local edge = self.edges[i][j]
-            if not edge then goto continue end
-
-            if edge.toremove then
-                edge.joint:destroy()
-                self.edges[i][j] = nil
-                self.edges[j][i] = nil
-            end
-
-            ::continue::
-        end
-    end
+	return fraction -- Continues with ray cast through all shapes infront of this one.
 end
