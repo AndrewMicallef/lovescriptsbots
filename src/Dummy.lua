@@ -40,8 +40,8 @@ end
 function Dummy:render()
 
     -- light pink, I think
-    love.graphics.setColor(.3,0,5, 3)
-    love.graphics.polygon('fill', unpack(self:getPoints()))
+    --love.graphics.setColor(.3,0,5, 3)
+    --love.graphics.polygon('fill', unpack(self:getPoints()))
 
     --TODO reconsider this
     self.body:render()

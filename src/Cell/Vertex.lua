@@ -93,7 +93,7 @@ function Vertex:update(dt)
 end
 
 function Vertex:render()
-    local fmt = {style='fill', col ={0,1,1,1}}
+    local fmt = {style='fill', col ={0,1,1,.3}}
     if self.isselected then
         fmt.col = {1,1,0,1}
     end
@@ -115,12 +115,16 @@ function Vertex:render()
     end
 
     if self.isselected then
+        love.graphics.setColor(0,0,0,.8)
+        love.graphics.rectangle('fill', 0, 0, 100, 50)
         love.graphics.setColor(1,1,1,1)
         love.graphics.print('links:' .. self.linkcount, 10, 10)
         love.graphics.print('anchored:' .. ca, 10, 20)
     end
     --love.graphics.line(cx, cy, self.norm.x + cx, self.norm.y + cy)
-    --[[DEBUG for drawing forces
+
+    --DEBUG for drawing forces
+    ----[[
     if self.isselected then
         local fnet = Vector.zero
         local cx, cy = self.body:getPosition()
@@ -144,6 +148,9 @@ function Vertex:addLink(other)
     --[[check orientation, make sure we make edges between the two closeset
     -- available anchor points
     --]]
+    if self.links[other] then
+        return
+    end
 
     for _, anchorA in pairs(self.anchors) do
         if anchorA.joined then goto continue_outer end
@@ -166,7 +173,11 @@ function Vertex:addLink(other)
         ::continue_outer::
     end
 
-    --[[
+    if not self.anchors[other] then
+        return
+    end
+
+    ----[[
     local ax1, ay1 = self.anchors[other].pos.x, self.anchors[other].pos.y
     local ax2, ay2 = other.anchors[self].pos.x, other.anchors[self].pos.y
 
@@ -186,21 +197,20 @@ function Vertex:addLink(other)
     self.links[other] = edge
     other.links[self] = edge
 
-    self.linkcount = tablelength(self.links)
-    other.linkcount = tablelength(other.links)
-    ]]
+    self.linkcount = self.linkcount + 1
+    other.linkcount = other.linkcount + 1
+
+    --]]
 end
 
 function Vertex:remLink(other)
     -- clear anchors -> reset to original key
     local anchorA = self.anchors[other]
-
     anchorA.joined = false
     self.anchors[anchorA.side] = anchorA
     self.anchors[other] = nil
 
     local anchorB = other.anchors[self]
-
     anchorB.joined = false
     other.anchors[anchorB.side] = anchorB
     other.anchors[self] = nil
@@ -212,8 +222,8 @@ function Vertex:remLink(other)
     self.links[other] = nil
     other.links[self] = nil
 
-    self.linkcount = tablelength(self.links)
-    other.linkcount = tablelength(other.links)
+    self.linkcount = self.linkcount - 1
+    other.linkcount = other.linkcount - 1
 end
 
 function Vertex:__tostring()

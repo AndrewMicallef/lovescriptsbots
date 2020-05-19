@@ -106,10 +106,11 @@ function Membrane:calcPressure(PRESSURE_CONSTANT)
             -- 1. calcualte the force based on distance
             local dist = math.sqrt((xi-xj)^2 + (yi-yj)^2)
 
-            local pmag = PRESSURE_CONSTANT / math.max(dist, 0.0001)^2
+            local pmag
             local col = {}
-            if this_vertex.linkcount < 2 then
-                pmag = - PRESSURE_CONSTANT / math.max(dist, 0.0001)
+
+            if this_vertex.linkcount < 2  and other_vertex.linkcount < 2 then
+                pmag = -2*PRESSURE_CONSTANT / math.max(dist, 0.0001)
                 col = {1,.5,.5,1}
             else
                 pmag = PRESSURE_CONSTANT / math.max(dist, 0.0001)^2
@@ -143,7 +144,7 @@ function Membrane:checkMembrane()
                 -- severe this link
 
                 vertexj:remLink(vertexi)
-            elseif r <= LINK_DIST then
+            elseif r <= LINK_DIST * 2 then
                 vertexi:addLink(vertexj)
             end
         end
