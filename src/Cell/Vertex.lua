@@ -1,3 +1,14 @@
+local anchor = {}
+
+function anchor.new()
+    local anchor = {
+        x, y, filled
+    }
+    return anchor
+end
+
+
+
 Vertex = Class{}
 
 --[[
@@ -17,6 +28,21 @@ function Vertex:init(def)
     self.links = {}
     self.linkcount = 0
 
+    --TODO add anchor points to vertex.
+    -- anchors have a position
+    self.anchors = {
+            ['L'] = {
+                id = nil, joined=nil,
+                pos = self.pos, -- (VERTEX_RADIUS / 2),
+                side = 'L'
+            },
+            ['R'] = {
+                id = nil, joined=nil,
+                pos = self.pos, -- + (VERTEX_RADIUS / 2),
+                side = 'R'
+            }
+        }
+
     self.isselected = nil
     self.dragging = {active = false, diffX = 0, diffY = 0}
 
@@ -32,6 +58,8 @@ end
 
 function Vertex:update(dt)
 
+    local w = 2*VERTEX_RADIUS
+    local phi = self.body:getAngle()
     --TODO consolidate forces
     local x,y = self.pos.x, self.pos.y
 
@@ -51,7 +79,17 @@ function Vertex:update(dt)
         self.body:applyLinearImpulse(fnet.x, fnet.y)
     end
 
-    self.pos.x, self.pos.y = self.body:getPosition()
+    self.pos = Vector(self.body:getPosition())
+    -- update anchor positions
+    -- calc anchor offsets
+    local anchor_offset = Vector(math.cos(phi), math.sin(phi)) *w/4
+    for _, anchor in pairs(self.anchors) do
+        if anchor.side == 'L' then
+            anchor.pos = self.pos - anchor_offset
+        else
+            anchor.pos = self.pos + anchor_offset
+        end
+    end
 end
 
 function Vertex:render()
@@ -64,8 +102,22 @@ function Vertex:render()
     end
     love.graphics.setColor(fmt.col)
     love.graphics.polygon(fmt.style, self.body:getWorldPoints(self.shape:getPoints()))
+
+    local ca = 0
+    for _, anchor in pairs(self.anchors) do
+        if anchor.joined then ca = ca + 1 end
+
+        love.graphics.setColor(1,0,0,.5)
+        if anchor.joined then
+            love.graphics.setColor(0,1,0,.5)
+        end
+        love.graphics.circle('fill', anchor.pos.x, anchor.pos.y, VERTEX_RADIUS/3)
+    end
+
     if self.isselected then
-        love.graphics.print(self.linkcount, WIDTH/2, HEIGHT/2)
+        love.graphics.setColor(1,1,1,1)
+        love.graphics.print('links:' .. self.linkcount, 10, 10)
+        love.graphics.print('anchored:' .. ca, 10, 20)
     end
     --love.graphics.line(cx, cy, self.norm.x + cx, self.norm.y + cy)
     --[[DEBUG for drawing forces
@@ -87,19 +139,86 @@ function Vertex:render()
     --]]
 end
 
+function Vertex:addLink(other)
+
+    --[[check orientation, make sure we make edges between the two closeset
+    -- available anchor points
+    --]]
+
+    for _, anchorA in pairs(self.anchors) do
+        if anchorA.joined then goto continue_outer end
+
+        for _, anchorB in pairs(other.anchors) do
+            if anchorB.joined then goto continue_inner end
+
+            -- re-assaign available anchors
+            self.anchors[other] = anchorA
+            anchorA.joined = true
+            self.anchors[_] = nil
+
+            other.anchors[self] = anchorB
+            anchorB.joined = true
+            other.anchors[_] = nil
+
+            ::continue_inner::
+        end
+
+        ::continue_outer::
+    end
+
+    --[[
+    local ax1, ay1 = self.anchors[other].pos.x, self.anchors[other].pos.y
+    local ax2, ay2 = other.anchors[self].pos.x, other.anchors[self].pos.y
+
+    --newDistanceJoint(body1, body2, x1, y1, x2, y2, collideConnected)
+    local joint = love.physics.newDistanceJoint(self.body, other.body,
+                                                ax1, ay1, ax2, ay2, false)
+    joint:setDampingRatio(.15)
+    joint:setFrequency(60)
+    joint:setLength(VERTEX_RADIUS/2)
+
+    -- make a reference
+    local edge = {
+        joint = joint,
+        col = {1,1,0,0}
+    }
+
+    self.links[other] = edge
+    other.links[self] = edge
+
+    self.linkcount = tablelength(self.links)
+    other.linkcount = tablelength(other.links)
+    ]]
+end
+
+function Vertex:remLink(other)
+    -- clear anchors -> reset to original key
+    local anchorA = self.anchors[other]
+
+    anchorA.joined = false
+    self.anchors[anchorA.side] = anchorA
+    self.anchors[other] = nil
+
+    local anchorB = other.anchors[self]
+
+    anchorB.joined = false
+    other.anchors[anchorB.side] = anchorB
+    other.anchors[self] = nil
+
+    -- destroy the joint
+    self.links[other].joint:destroy()
+
+    -- clear references to it
+    self.links[other] = nil
+    other.links[self] = nil
+
+    self.linkcount = tablelength(self.links)
+    other.linkcount = tablelength(other.links)
+end
+
 function Vertex:__tostring()
     local s = 'vertex'..self.id.. ' ('.. string.format("%.3f", self.pos.x)
                 .. ', ' ..
                 string.format("%.3f", self.pos.y)..')'
     return s
-end
-
-function Vertex:addLink(other)
-    self.links[other.id] = other
-    self.linkcount = tablelength(self.links)
-end
-
-function Vertex:remLink(other)
-    self.links[other.id] = nil
-    self.linkcount = tablelength(self.links)
 end

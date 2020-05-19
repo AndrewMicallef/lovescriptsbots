@@ -66,3 +66,10 @@ connections, but be available to collide with all others.
 
 So I'd like my cells to have internal organelles / proteins / enzymes that push
 them around, cut the membrane and repair the membrane.
+
+
+**2020 - 05 - 19**
+Today I am removing the references to edges from within the membrane and
+refactoring them into the vertex class, which feels more natural. The Vertex is
+the natural membrane segment, and needs to know if it is linked in order to exert
+force on other segments.

@@ -13,10 +13,11 @@ function Dummy:init(def)
     self.verticies = self.body.verticies
 
     self.organs = {}
-    for i=1, 3 do
+    --[[for i=1, 3 do
         local organelle = Organelle(self)
         self.organs[organelle] = organelle
     end
+    ]]
 
     -- not sure if I want polygon body to mimic b2d shapes and fixtures...
     -- I think I might want to do this for collision detection
