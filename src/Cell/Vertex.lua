@@ -33,12 +33,12 @@ function Vertex:init(def)
     self.anchors = {
             ['L'] = {
                 id = nil, joined=nil,
-                pos = self.pos, -- (VERTEX_RADIUS / 2),
+                pos = Vector.zero, -- (VERTEX_RADIUS / 2),
                 side = 'L'
             },
             ['R'] = {
                 id = nil, joined=nil,
-                pos = self.pos, -- + (VERTEX_RADIUS / 2),
+                pos = Vector.zero, -- + (VERTEX_RADIUS / 2),
                 side = 'R'
             }
         }
@@ -67,6 +67,7 @@ function Vertex:update(dt)
         local cx, cy = love.mouse.getPosition( )
         local dx, dy = cx-x, cy-y
         self.body:setPosition(x + dx, y + dy)
+        self.pos = Vector(self.body:getPosition())
     else
         if self.dragging.active then
             self.dragging.active = false end
@@ -84,10 +85,10 @@ function Vertex:update(dt)
     -- calc anchor offsets
     local anchor_offset = Vector(math.cos(phi), math.sin(phi)) *w/4
     for _, anchor in pairs(self.anchors) do
-        if anchor.side == 'L' then
-            anchor.pos = self.pos - anchor_offset
-        else
+        if anchor.side == 'R' then
             anchor.pos = self.pos + anchor_offset
+        else
+            anchor.pos = self.pos - anchor_offset
         end
     end
 end
@@ -160,32 +161,39 @@ function Vertex:addLink(other)
         return
     end
 
-    for _, anchorA in pairs(self.anchors) do
-        if anchorA.joined or self.anchors[other] then goto continue_outer end
+    local anc_pair
+    local min_d
+    for _, anc_s in pairs(self.anchors) do
+        if not anc_s.joined then
+            for _, anc_o in pairs(other.anchors) do
+                if not anc_o.joined then
 
-        for _, anchorB in pairs(other.anchors) do
-            if anchorB.joined or other.anchors[self] then goto continue_inner end
-
-            -- re-assaign available anchors
-            self.anchors[other] = anchorA
-            anchorA.joined = true
-            anchorA.id = other.id
-            self.anchors[_] = nil
-
-            other.anchors[self] = anchorB
-            anchorB.joined = true
-            anchorB.id = self.id
-            other.anchors[_] = nil
-
-            ::continue_inner::
+                    local d = anc_s.pos:dist(anc_o.pos)
+                    if not min_d or d < min_d then
+                        min_d = d
+                        anc_pair = {anc_s.side, anc_o.side}
+                    end
+                end
+            end
         end
-
-        ::continue_outer::
     end
 
-    if not self.anchors[other] then
+    if not anc_pair then
         return
     end
+
+    local sk, ok = unpack(anc_pair)
+
+    -- re-assaign available anchors
+    self.anchors[other] = other.anchors[ok]
+    self.anchors[other].joined = true
+    self.anchors[other].id = other.id
+    self.anchors[ok] = nil
+
+    other.anchors[self] = self.anchors[sk]
+    other.anchors[self].joined = true
+    other.anchors[self].id = self.id
+    other.anchors[sk] = nil
 
     ----[[
     local ax1, ay1 = self.anchors[other].pos.x, self.anchors[other].pos.y
@@ -194,9 +202,9 @@ function Vertex:addLink(other)
     --newDistanceJoint(body1, body2, x1, y1, x2, y2, collideConnected)
     local joint = love.physics.newDistanceJoint(self.body, other.body,
                                                 ax1, ay1, ax2, ay2, false)
-    joint:setDampingRatio(.15)
+    joint:setDampingRatio(.5)
     joint:setFrequency(60)
-    joint:setLength(VERTEX_RADIUS/2)
+    joint:setLength(VERTEX_RADIUS)
 
     -- make a reference
     local edge = {

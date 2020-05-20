@@ -41,7 +41,8 @@ function love.draw()
     for _, v in pairs(entities) do
         if v.render then v:render(dt) end
     end
-
+    love.graphics.setColor(1,1,1,1)
+    love.graphics.print("EDGE LINKING TEST", WIDTH-150, 10)
 end
 
 

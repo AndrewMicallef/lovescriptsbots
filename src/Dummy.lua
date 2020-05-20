@@ -8,7 +8,7 @@ function Dummy:init(def)
     self.pos = def.pos or Vector.new(math.random(0, WIDTH), math.random(0, HEIGHT))
 
     self.res = def.res or 8
-    self.radius = 90
+    self.radius = 150
     self.body = Membrane(self)
     self.verticies = self.body.verticies
 

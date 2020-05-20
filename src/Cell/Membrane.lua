@@ -5,8 +5,8 @@ A Membrane is a physical object defined by a collection of vertices,
 linked via distance joints
 ]]
 
-MAX_DIST = VERTEX_RADIUS*2
-LINK_DIST = VERTEX_RADIUS
+MAX_DIST = VERTEX_RADIUS*10
+LINK_DIST = VERTEX_RADIUS*2.2
 function Membrane:init(parent)
     self.parent = parent
     self.pos = parent.pos
@@ -109,8 +109,8 @@ function Membrane:calcPressure(PRESSURE_CONSTANT)
             local pmag
             local col = {}
 
-            if this_vertex.linkcount < 2  and other_vertex.linkcount < 2 then
-                pmag = -2*PRESSURE_CONSTANT / math.max(dist, 0.0001)
+            if this_vertex.linkcount < 2 and other_vertex.linkcount < 2 then
+                pmag = -PRESSURE_CONSTANT / math.max(dist, 0.0001)
                 col = {1,.5,.5,1}
             else
                 pmag = PRESSURE_CONSTANT / math.max(dist, 0.0001)^2
@@ -144,7 +144,7 @@ function Membrane:checkMembrane()
                 -- severe this link
 
                 vertexj:remLink(vertexi)
-            elseif r <= LINK_DIST * 2 then
+            elseif r <= LINK_DIST and not vertexi.links[vertexj] then
                 vertexi:addLink(vertexj)
             end
         end
