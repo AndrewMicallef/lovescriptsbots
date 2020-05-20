@@ -1,6 +1,6 @@
 # Love:ScriptBots
 
-This project is a hobbiests fork of Andrej Karpathy's [ScriptBots], rewritten
+This project is a hobbyists fork of Andrej Karpathy's [ScriptBots], rewritten
 in the [love2D] engine.
 
 --------------------------------------------------------------------------------
@@ -73,3 +73,30 @@ Today I am removing the references to edges from within the membrane and
 refactoring them into the vertex class, which feels more natural. The Vertex is
 the natural membrane segment, and needs to know if it is linked in order to exert
 force on other segments.
+
+
+**2020 - 05 - 20**
+Doing some bug hunting tonight. Verticies contain an `anchors` field which keeps
+track of the two anchor points on the vertex.
+
+```.lua
+function Vertex:init()
+    --...
+    self.anchors = {
+            ['L'] = {
+                id = nil, joined=nil,
+                pos = self.pos, -- (VERTEX_RADIUS / 2),
+                side = 'L'
+            },
+            ['R'] = {
+                id = nil, joined=nil,
+                pos = self.pos, -- + (VERTEX_RADIUS / 2),
+                side = 'R'
+            }
+        }
+    --...
+end
+
+```
+The `Vertex` has two methods which modify `anchors`, these are `remLink(other)`
+and `addLink(other)`, `other` is the other `Vertex` involved the joint.

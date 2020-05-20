@@ -120,6 +120,14 @@ function Vertex:render()
         love.graphics.setColor(1,1,1,1)
         love.graphics.print('links:' .. self.linkcount, 10, 10)
         love.graphics.print('anchored:' .. ca, 10, 20)
+        local _h = 0
+        for _, anchor in pairs(self.anchors) do
+            love.graphics.print('    ' .. anchor.side .. ': ', 10, 30 + _h)
+            if anchor.id then
+                love.graphics.print(anchor.id, 40, 30 + _h)
+            end
+            _h = _h + 10
+        end
     end
     --love.graphics.line(cx, cy, self.norm.x + cx, self.norm.y + cy)
 
@@ -148,23 +156,25 @@ function Vertex:addLink(other)
     --[[check orientation, make sure we make edges between the two closeset
     -- available anchor points
     --]]
-    if self.links[other] then
+    if self.anchors[other] then
         return
     end
 
     for _, anchorA in pairs(self.anchors) do
-        if anchorA.joined then goto continue_outer end
+        if anchorA.joined or self.anchors[other] then goto continue_outer end
 
         for _, anchorB in pairs(other.anchors) do
-            if anchorB.joined then goto continue_inner end
+            if anchorB.joined or other.anchors[self] then goto continue_inner end
 
             -- re-assaign available anchors
             self.anchors[other] = anchorA
             anchorA.joined = true
+            anchorA.id = other.id
             self.anchors[_] = nil
 
             other.anchors[self] = anchorB
             anchorB.joined = true
+            anchorB.id = self.id
             other.anchors[_] = nil
 
             ::continue_inner::
@@ -207,11 +217,13 @@ function Vertex:remLink(other)
     -- clear anchors -> reset to original key
     local anchorA = self.anchors[other]
     anchorA.joined = false
+    anchorA.id = nil
     self.anchors[anchorA.side] = anchorA
     self.anchors[other] = nil
 
     local anchorB = other.anchors[self]
     anchorB.joined = false
+    anchorB.id = nil
     other.anchors[anchorB.side] = anchorB
     other.anchors[self] = nil
 

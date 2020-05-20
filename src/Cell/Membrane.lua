@@ -140,7 +140,7 @@ function Membrane:checkMembrane()
 
             local r = math.sqrt((xi-xj)^2 + (yi-yj)^2)
 
-            if vertexi.links[vj] and r >= MAX_DIST then
+            if vertexi.links[vertexj] and r >= MAX_DIST then
                 -- severe this link
 
                 vertexj:remLink(vertexi)
