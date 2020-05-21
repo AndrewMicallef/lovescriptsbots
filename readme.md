@@ -46,3 +46,18 @@ On reflection it seams that I could model pressure as a force exerted by each
 vertex on every other connected vertex. I might trace a ray from each vertex to
 all the others, and if the ray can see the other vertex, then I can add a force
 inversely proportional to it's length to the contacted vertex.
+
+-------------------------------------------------------------------------------
+# Membrane Refactor
+*2020 - 05 - 21*
+
+Consider the membrane as composed of phospholipids.  When two phospholipids come
+close they form a bond (distancejoint + rectangleshape) Phospholipids may have a
+total of two bonds.
+
+Phospholipids exert a pull force on other phospholipds proportional two the
+number of available bonds (valency). When they have two bonds phospholipids
+repel other phospholipids.
+
+The `Vertex` class is a good place to start for conversion to a phospholipid way
+of doing things.

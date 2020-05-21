@@ -7,45 +7,58 @@ function love.load()
     love.window.setTitle('Artificial Life')
 
     -- instantiate the world
-    world = love.physics.newWorld(0,0, true)
+    World = love.physics.newWorld(0,0, true)
 
     world_bounds = {}
-    world_bounds.body = love.physics.newBody(world, 0, 0, 'static')
+    world_bounds.body = love.physics.newBody(World, 0, 0, 'static')
     world_bounds.shape = love.physics.newChainShape(true, {0,0, 0,HEIGHT, WIDTH, HEIGHT, WIDTH, 0})
     world_bounds.fixture = love.physics.newFixture(world_bounds.body, world_bounds.shape)
 
     -- spawn agents
-    agent = Dummy{world=world,
-                  pos=Vector.new(WIDTH/2, HEIGHT/2),
-                  res=50
-              }
+    entities = {}
+
+    for i=1, 60 do
+        local lipid = Lipid{pos = Vector.randomDirection(10, 250) + Vector(WIDTH/2, HEIGHT/2),
+                            angle = math.random() * math.pi * 2,
+                            id = i,
+                            world = World
+                            }
+
+        table.insert(entities, lipid)
+    end
+
 end
 
 function love.update(dt)
 
-    agent:update(dt)
+    for _, entity in pairs(entities) do
+        entity:update(dt)
+    end
 
-    world:update(dt)
+    World:update(dt)
 end
 
 
 function love.draw()
-    agent:render()
+
+    for _, entity in pairs(entities) do
+        entity:render()
+    end
 end
 
 
 function love.mousepressed(x, y, button)
     if button == 1
         and selected
-        and x > selected.x - 10 and x < selected.x + 10
-        and y > selected.y - 10 and y < selected.y + 10
+        and x > selected.pos.x - 10 and x < selected.pos.x + 10
+        and y > selected.pos.y - 10 and y < selected.pos.y + 10
     then
     selected.dragging.active = true
     end
 
     if button == 2
     then
-        local bodies = world:getBodies()
+        local bodies = World:getBodies()
         --select the nearest item
         local nearest = {r=20, sel=nil}
         for _, body in pairs(bodies) do

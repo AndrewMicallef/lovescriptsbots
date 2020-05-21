@@ -88,3 +88,10 @@ function Vertex:__tostring()
                 string.format("%.3f", self.y)..')'
     return s
 end
+
+
+function Vertex:addLink(other)
+end
+
+function Vertex:remLink(other)
+end

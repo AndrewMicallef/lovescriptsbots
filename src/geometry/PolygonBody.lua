@@ -13,18 +13,9 @@ function PolygonBody:init(parent)
     self.radius = parent.radius
 
     self.verticies = {}
-    self.edges = {} for i=1, self.res do self.edges[i] = {} end
 
     -- generate a ring of verticies
     for i=1, self.res do
-        local e1 = i-1
-        local e2 = i+1
-        if i == self.res then e2 = 1 end
-        if i == 1 then e1 = self.res end
-
-        self.edges[i][e1] = true
-        self.edges[i][e2] = true
-
 
         local phi = i/self.res * math.pi * 2
         local cx = math.cos(phi) * self.radius + self.pos.x
