@@ -31,7 +31,7 @@ function Organelle:update(dt)
     local x,y = self.pos.x, self.pos.y
 
     if self.dragging.active and love.mouse.isDown(1) then
-        local cx, cy = love.mouse.getPosition( )
+        local cx, cy = love.mouse.getPosition()
         local dx, dy = cx-x, cy-y
         self.body:setPosition(x + dx, y + dy)
     else
