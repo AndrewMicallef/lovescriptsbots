@@ -21,7 +21,7 @@ in the [love2D] engine.
 
 --------------------------------------------------------------------------------
 
-# Notes on internal pressure...
+## Notes on internal pressure...
 
 1. I think pressure is proportional to the change in area. Initial area is
    referred to as `internal_vol` (**A0**), which will later become a dynamic
@@ -62,7 +62,7 @@ connections, but be available to collide with all others.
 
 --------------------------------------------------------------------------------
 
-# Onto Cytoskeleton or Organelles or whatever...
+## Onto Cytoskeleton or Organelles or whatever...
 
 So I'd like my cells to have internal organelles / proteins / enzymes that push
 them around, cut the membrane and repair the membrane.
@@ -79,7 +79,7 @@ force on other segments.
 Doing some bug hunting tonight. Verticies contain an `anchors` field which keeps
 track of the two anchor points on the vertex.
 
-```.lua
+```lua
 function Vertex:init()
     --...
     self.anchors = {
