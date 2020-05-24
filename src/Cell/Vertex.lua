@@ -119,7 +119,7 @@ function Vertex:render()
         love.graphics.setColor(0,0,0,.8)
         love.graphics.rectangle('fill', 0, 0, 100, 50)
         love.graphics.setColor(1,1,1,1)
-        love.graphics.print('links:' .. self.linkcount, 10, 10)
+        love.graphics.print('id:' .. self.id, 10, 10)
         love.graphics.print('anchored:' .. ca, 10, 20)
         local _h = 0
         for _, anchor in pairs(self.anchors) do
@@ -133,7 +133,7 @@ function Vertex:render()
     --love.graphics.line(cx, cy, self.norm.x + cx, self.norm.y + cy)
 
     --DEBUG for drawing forces
-    ----[[
+    --[[
     if self.isselected then
         local fnet = Vector.zero
         local cx, cy = self.body:getPosition()
@@ -161,8 +161,9 @@ function Vertex:addLink(other)
         return
     end
 
-    local anc_pair
-    local min_d
+
+    local anc_pair --pair of anchors
+    local min_d  -- the minimum distance between anchors
     for _, anc_s in pairs(self.anchors) do
         if not anc_s.joined then
             for _, anc_o in pairs(other.anchors) do
