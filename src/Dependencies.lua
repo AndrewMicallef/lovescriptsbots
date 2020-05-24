@@ -7,7 +7,7 @@ require 'src.constants'
 
 --building blocks
 
-require 'src.Cell.Vertex'
+require 'src.Cell.MembraneSegment'
 require 'src.Cell.Membrane'
 require 'src.Cell.Organelle'
 
