@@ -18,7 +18,7 @@ function love.load()
     -- spawn agents
     entities = {}
 
-    for i=1, 150 do
+    for i=1, 300 do
         local lipid = Lipid{pos = Vector.randomDirection(10, 250) + Vector(WIDTH/2, HEIGHT/2),
                             angle = math.random() * math.pi * 2,
                             id = i,

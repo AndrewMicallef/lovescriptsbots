@@ -35,13 +35,15 @@ end
 function Lipid:update(dt)
 
     self.forces = {}
+    
+    if self.valence == 0 then goto novalence end
     -- generate forces
-    local lipids = {}
     for _, body in pairs(self.world:getBodies()) do
         if body:getUserData()
             and body:getUserData().islipid
             and self.body ~= body
             and not self.bonds[lipid]
+            and not body:getUserData().forces[self]
             then
             local lipid = body:getUserData()
 
@@ -76,6 +78,7 @@ function Lipid:update(dt)
 
         end
     end
+    ::novalence::
 
     --TODO consolidate forces
     local x,y = self.pos.x, self.pos.y
