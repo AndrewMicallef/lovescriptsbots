@@ -18,7 +18,7 @@ function love.load()
     -- spawn agents
     entities = {}
 
-    for i=1, 30 do
+    for i=1, 150 do
         local lipid = Lipid{pos = Vector.randomDirection(10, 250) + Vector(WIDTH/2, HEIGHT/2),
                             angle = math.random() * math.pi * 2,
                             id = i,
@@ -28,6 +28,8 @@ function love.load()
         table.insert(entities, lipid)
     end
 
+    love.keywaspressed = {}
+    physics = true
 end
 
 function love.update(dt)
@@ -36,7 +38,17 @@ function love.update(dt)
         entity:update(dt)
     end
 
-    World:update(dt)
+    if love.keywaspressed['space'] then
+        physics = not physics
+        print('physics: ' .. tostring(physics))
+    end
+
+    if physics then
+        World:update(dt)
+    end
+
+
+    love.keywaspressed = {}
 end
 
 
@@ -85,5 +97,7 @@ end
 function love.keypressed(key)
     if key == 'escape' then
         love.event.quit('restart')
+    else
+        love.keywaspressed[key] = true
     end
 end

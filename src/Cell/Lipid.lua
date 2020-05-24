@@ -13,7 +13,10 @@ function Lipid:init(def)
     self.pos = def.pos
 
     self.islipid = true
-    self.valence = math.random(-2, 2)
+    self.valence = 2
+    if math.random(0,1) == 0 then
+        self.valence = self.valence * -1
+    end
     self.bonds = {}
 
     --TODO add anchor points to Lipid.
@@ -38,6 +41,7 @@ function Lipid:update(dt)
         if body:getUserData()
             and body:getUserData().islipid
             and self.body ~= body
+            and not self.bonds[lipid]
             then
             local lipid = body:getUserData()
 
@@ -46,14 +50,23 @@ function Lipid:update(dt)
             local force
             local col
 
-            --if self.valence ~= 0 then
-            force = PRESSURE_CONSTANT * (self.valence+lipid.valence) / math.max(r, VERTEX_RADIUS)^2
+            -- force should be proportional to difference in valence (charge)
+            -- negative charges should attract positive charges
+            -- negative charges should repel negeative charges
+
+
+            force = CHARGE_CONSTANT * (self.valence * lipid.valence) / math.max(r, VERTEX_RADIUS)^2
             col = {0,1,1,1}
 
-            if r < BOND_DIST and not self.bonds[lipid] then
+
+            if r < BOND_DIST
+                and ((self.valence < 0 and lipid.valence > 0)
+                    or (self.valence > 0 and lipid.valence < 0))
+                then
                 self:addLink(lipid)
             end
-            --[[else
+
+        --[[else
                 force = PRESSURE_CONSTANT/50 / math.max(r, 0.0001)^2
                 col = {1,1,0,1}
             end
@@ -94,9 +107,9 @@ function Lipid:render()
     if self.valence == 0 then
         fmt.col = {0.5, 0.5, 0.5, 1}
     elseif self.valence > 0 then
-        fmt.col = {1,0,0,1}
+        fmt.col = {1/1+self.valence,0,0,1}
     else
-        fmt.col = {1,0,1,1}
+        fmt.col = {0,0,1/1+math.abs(self.valence),1}
     end
 
     if self.isselected then
@@ -168,8 +181,8 @@ function Lipid:addLink(other)
     self.bonds[other] = joint
     other.bonds[self] = joint
 
-    self.valence = self.valence + other.valence
-    other.valence = other.valence + self.valence
+    self.valence = self.valence - 1 * (self.valence/math.abs(self.valence))
+    other.valence = other.valence - 1 * (other.valence/math.abs(other.valence))
 
 end
 
