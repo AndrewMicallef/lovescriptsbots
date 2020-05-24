@@ -1,22 +1,9 @@
-local anchor = {}
-
-function anchor.new()
-    local anchor = {
-        x, y, filled
-    }
-    return anchor
-end
-
-
-
-Vertex = Class{}
+MembraneSegment = Class{}
 
 --[[
-A vertex is a physical object with a body, circleshape, which is connected to
-0 or more other verticies via spring joints
--- represents a section of membrane...
+Represents a section of membrane with the ability to link to other membrane segments
 ]]
-function Vertex:init(def)
+function MembraneSegment:init(def)
     self.parent = def.parent
     self.world = self.parent.world
     self.id = def.id --some unique ID
@@ -46,8 +33,9 @@ function Vertex:init(def)
     self.isselected = nil
     self.dragging = {active = false, diffX = 0, diffY = 0}
 
+    -- segment physical presence
     self.body = love.physics.newBody(self.world, self.pos.x, self.pos.y, def.type or 'dynamic')
-    self.shape = love.physics.newRectangleShape(0, 0, 2*VERTEX_RADIUS, VERTEX_RADIUS)
+    self.shape = love.physics.newRectangleShape(0, 0, SEGMENT_W, SEGMENT_H)
     self.fixture = love.physics.newFixture(self.body, self.shape)
     self.body:setUserData(self)
     self.body:setAngle(self.angle+math.pi/2)
@@ -56,9 +44,9 @@ function Vertex:init(def)
     self.norm = Vector(0,0)
 end
 
-function Vertex:update(dt)
+function MembraneSegment:update(dt)
 
-    local w = 2*VERTEX_RADIUS
+    local w = SEGMENT_W
     local phi = self.body:getAngle()
     --TODO consolidate forces
     local x,y = self.pos.x, self.pos.y
@@ -93,7 +81,7 @@ function Vertex:update(dt)
     end
 end
 
-function Vertex:render()
+function MembraneSegment:render()
     local fmt = {style='fill', col ={0,1,1,.3}}
     if self.isselected then
         fmt.col = {1,1,0,1}
@@ -112,7 +100,7 @@ function Vertex:render()
         if anchor.joined then
             love.graphics.setColor(0,1,0,.5)
         end
-        love.graphics.circle('fill', anchor.pos.x, anchor.pos.y, VERTEX_RADIUS/3)
+        love.graphics.circle('fill', anchor.pos.x, anchor.pos.y, SEGMENT_H)
     end
 
     if self.isselected then
@@ -130,29 +118,9 @@ function Vertex:render()
             _h = _h + 10
         end
     end
-    --love.graphics.line(cx, cy, self.norm.x + cx, self.norm.y + cy)
-
-    --DEBUG for drawing forces
-    --[[
-    if self.isselected then
-        local fnet = Vector.zero
-        local cx, cy = self.body:getPosition()
-        for _, f in pairs(self.forces) do
-            local _ = love.graphics.getColor()
-            if _ ~= f.col then love.graphics.setColor(f.col) end
-            local force = f.force
-            force = force / 10
-            fnet = fnet + force
-            love.graphics.line(cx, cy, (force.x*1e5 + cx),
-                                        (force.y*1e5 + cy))
-        end
-        love.graphics.setColor(1,0,0,1)
-        love.graphics.line(cx, cy, fnet.x + cx, fnet.y + cy)
-    end
-    --]]
 end
 
-function Vertex:addLink(other)
+function MembraneSegment:addLink(other)
 
     --[[check orientation, make sure we make edges between the two closeset
     -- available anchor points
@@ -216,7 +184,7 @@ function Vertex:addLink(other)
                                                 ax1, ay1, ax2, ay2, false)
     joint:setDampingRatio(.5)
     joint:setFrequency(60)
-    joint:setLength(10)
+    joint:setLength(SEGMENT_H)
 
     -- make a reference
     local edge = {
@@ -233,7 +201,7 @@ function Vertex:addLink(other)
     --]]
 end
 
-function Vertex:remLink(other)
+function MembraneSegment:remLink(other)
     -- clear anchors -> reset to original key
     local anchorA = self.anchors[other]
     anchorA.joined = false
@@ -258,7 +226,7 @@ function Vertex:remLink(other)
     other.linkcount = other.linkcount - 1
 end
 
-function Vertex:__tostring()
+function MembraneSegment:__tostring()
     local s = 'vertex'..self.id.. ' ('.. string.format("%.3f", self.pos.x)
                 .. ', ' ..
                 string.format("%.3f", self.pos.y)..')'

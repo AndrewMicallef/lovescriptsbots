@@ -100,3 +100,5 @@ end
 ```
 The `Vertex` has two methods which modify `anchors`, these are `remLink(other)`
 and `addLink(other)`, `other` is the other `Vertex` involved the joint.
+
+Also, to add to confusion I decided to rename the verticies `MembraneSegement`s.
