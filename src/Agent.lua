@@ -56,6 +56,13 @@ end
 
 function Agent:update(dt)
 
+    if self.isdead then
+        if not self.body:isDestroyed() then
+            self.body:destroy()
+        end
+        return
+    end
+
     -- metabolise
     self:metabolise(dt)
 
