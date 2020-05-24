@@ -5,8 +5,8 @@ A Membrane is a physical object defined by a collection of vertices,
 linked via distance joints
 ]]
 
-MAX_DIST = SEGMENT_H*10
-LINK_DIST = SEGMENT_W*1.5
+MAX_DIST = SEGMENT_W*1.5
+LINK_DIST = SEGMENT_W
 function Membrane:init(parent)
     self.parent = parent
     self.pos = parent.pos
