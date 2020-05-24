@@ -74,7 +74,6 @@ refactoring them into the vertex class, which feels more natural. The Vertex is
 the natural membrane segment, and needs to know if it is linked in order to exert
 force on other segments.
 
-
 **2020 - 05 - 20**
 Doing some bug hunting tonight. Verticies contain an `anchors` field which keeps
 track of the two anchor points on the vertex.
@@ -100,3 +99,25 @@ end
 ```
 The `Vertex` has two methods which modify `anchors`, these are `remLink(other)`
 and `addLink(other)`, `other` is the other `Vertex` involved the joint.
+
+
+**2020 - 05 - 24**
+Turns out the bug was lurking in `Vertex:addLink()` in the following lines:
+```lua
+-- re-assaign available anchors
+self.anchors[other] = self.anchors[selfside]
+self.anchors[other].joined = true
+self.anchors[other].id = other.id
+self.anchors[selfside] = nil
+
+other.anchors[self] = other.anchors[otherside]
+other.anchors[self].joined = true
+other.anchors[self].id = self.id
+other.anchors[otherside] = nil
+```
+`selfside` and `otherside` are both keys of the available anchors closest to the
+other and the self vertices respectively. In the bugged version had been
+assigning new anchor of the self vertex to the old anchor of the other vertex,
+meaning that verticies were trading anchors in the bonding process. This led to
+some anchors going missing and verticies winding up with two left or two right
+anchors. The above method fixes that.

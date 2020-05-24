@@ -17,7 +17,7 @@ function love.load()
     -- spawn agents
     d1 = Dummy{world=world,
                   pos=Vector.new(WIDTH/2, HEIGHT/2),
-                  res=25
+                  res=10
               }
 
     entities = {}
