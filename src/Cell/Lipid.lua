@@ -13,7 +13,7 @@ function Lipid:init(def)
     self.pos = def.pos
 
     self.islipid = true
-    self.valence = 2
+    self.valence = math.random(-2, 2)
     self.bonds = {}
 
     --TODO add anchor points to Lipid.
@@ -46,17 +46,18 @@ function Lipid:update(dt)
             local force
             local col
 
-            if self.valence > 0 then
-                force = - PRESSURE_CONSTANT * self.valence / math.max(r, 0.0001)^2
-                col = {0,1,1,1}
+            --if self.valence ~= 0 then
+            force = PRESSURE_CONSTANT * (self.valence+lipid.valence) / math.max(r, VERTEX_RADIUS)^2
+            col = {0,1,1,1}
 
-                if r < BOND_DIST and not self.bonds[lipid] then
-                    self:addLink(lipid)
-                end
-            else
+            if r < BOND_DIST and not self.bonds[lipid] then
+                self:addLink(lipid)
+            end
+            --[[else
                 force = PRESSURE_CONSTANT/50 / math.max(r, 0.0001)^2
                 col = {1,1,0,1}
             end
+            --]]
 
             self.forces[lipid] = {force=force*direction, col=col}
 
@@ -90,6 +91,14 @@ function Lipid:render()
     local cx, cy = self.pos.x, self.pos.y
     local fmt = {style='fill', col ={0,1/(1+self.valence),1/ (1+self.valence),1}}
 
+    if self.valence == 0 then
+        fmt.col = {0.5, 0.5, 0.5, 1}
+    elseif self.valence > 0 then
+        fmt.col = {1,0,0,1}
+    else
+        fmt.col = {1,0,1,1}
+    end
+
     if self.isselected then
         fmt.col = {1,1,0,1}
     end
@@ -108,6 +117,12 @@ function Lipid:render()
             love.graphics.line(cx, cy, (force.x*1e5 + cx),
                                         (force.y*1e5 + cy))
         end
+
+        local lh, lx = 10, 10
+        love.graphics.setColor(1,1,1,1)
+        love.graphics.print(self.id, lx,lh)
+        love.graphics.print('valence: ' .. self.valence, lx,lh*2)
+
     end
 
     for _, bond in pairs(self.bonds) do
@@ -118,7 +133,7 @@ end
 
 function Lipid:addLink(other)
 
-    if self.bonds[other] then
+    if self.bonds[other] or other.bonds[self] then
         return
     end
 
@@ -153,8 +168,8 @@ function Lipid:addLink(other)
     self.bonds[other] = joint
     other.bonds[self] = joint
 
-    self.valence = self.valence - 1
-    other.valence = other.valence - 1
+    self.valence = self.valence + other.valence
+    other.valence = other.valence + self.valence
 
 end
 

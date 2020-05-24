@@ -3,6 +3,7 @@ require 'src/Dependencies'
 
 function love.load()
 
+    math.randomseed(os.time())
     WIDTH, HEIGHT = love.window.getMode()
     love.window.setTitle('Artificial Life')
 
@@ -17,7 +18,7 @@ function love.load()
     -- spawn agents
     entities = {}
 
-    for i=1, 60 do
+    for i=1, 30 do
         local lipid = Lipid{pos = Vector.randomDirection(10, 250) + Vector(WIDTH/2, HEIGHT/2),
                             angle = math.random() * math.pi * 2,
                             id = i,
