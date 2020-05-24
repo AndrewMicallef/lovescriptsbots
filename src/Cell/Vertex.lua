@@ -161,40 +161,51 @@ function Vertex:addLink(other)
         return
     end
 
-
-    local anc_pair --pair of anchors
+    local anc_pair -- pair of anchors
     local min_d  -- the minimum distance between anchors
-    for _, anc_s in pairs(self.anchors) do
-        if not anc_s.joined then
-            for _, anc_o in pairs(other.anchors) do
-                if not anc_o.joined then
 
-                    local d = anc_s.pos:dist(anc_o.pos)
-                    if not min_d or d < min_d then
-                        min_d = d
-                        anc_pair = {anc_s.side, anc_o.side}
-                    end
-                end
+    --[[ I need to connect the first available anchor in self with the first
+    available anchor in other. I can forget about minimising distance for the moment
+    --]]
+
+    for _, anc_s in pairs(self.anchors) do
+        if anc_s.joined then goto cont1 end
+
+        for _, anc_o in pairs(other.anchors) do
+            if anc_o.joined then goto cont2 end
+
+            local d = anc_s.pos:dist(anc_o.pos)
+            if not min_d or d < min_d then
+                min_d = d
+                anc_pair = {anc_s.side, anc_o.side}
             end
+            ::cont2::
         end
+        ::cont1::
     end
 
     if not anc_pair then
         return
     end
 
-    local sk, ok = unpack(anc_pair)
+    for _, v in pairs(anc_pair) do
+        if not v then
+            return
+        end
+    end
+
+    local selfside, otherside = unpack(anc_pair)
 
     -- re-assaign available anchors
-    self.anchors[other] = other.anchors[ok]
+    self.anchors[other] = self.anchors[selfside]
     self.anchors[other].joined = true
     self.anchors[other].id = other.id
-    self.anchors[ok] = nil
+    self.anchors[selfside] = nil
 
-    other.anchors[self] = self.anchors[sk]
+    other.anchors[self] = other.anchors[otherside]
     other.anchors[self].joined = true
     other.anchors[self].id = self.id
-    other.anchors[sk] = nil
+    other.anchors[otherside] = nil
 
     ----[[
     local ax1, ay1 = self.anchors[other].pos.x, self.anchors[other].pos.y
@@ -205,7 +216,7 @@ function Vertex:addLink(other)
                                                 ax1, ay1, ax2, ay2, false)
     joint:setDampingRatio(.5)
     joint:setFrequency(60)
-    joint:setLength(VERTEX_RADIUS)
+    joint:setLength(10)
 
     -- make a reference
     local edge = {
