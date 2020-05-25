@@ -78,6 +78,7 @@ function Organelle:hook()
     if self.joint then
         self.joint:destroy()
         self.joint = nil
+        self.segment = nil
         print('detached hook')
         return
     end
@@ -89,14 +90,14 @@ function Organelle:hook()
 
     for _, segment in pairs(segments) do
 
-        local distance = self.pos:dist(segment.pos)
+        local distance = self.pos:dist2(segment.pos)
         if not min_dist or min_dist > distance then
             closest_segment = segment
             min_dist = distance
         end
     end
 
-    if min_dist > 200 then
+    if min_dist > 30^2 then
         return
     end
 
@@ -108,11 +109,25 @@ function Organelle:hook()
                                             false)
 
     self.joint:setLength(20)
-
+    self.segment = closest_segment
     print('hooked segment ' .. closest_segment.id)
 end
 
 function Organelle:tear()
+    if not self.segment then
+        print('I got nothing to cut here man!')
+        return
+    end
+
+    -- cut the first link that we find
+    for other, anchor in pairs(self.segment.anchors) do
+        if anchor.joined then
+            self.segment:remLink(other)
+            print('severed link to: ' .. other.id)
+            break
+        end
+    end
+
 end
 
 
