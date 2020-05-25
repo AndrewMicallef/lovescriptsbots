@@ -5,13 +5,17 @@ require 'src.utility'
 
 require 'src.constants'
 
+require 'src.StateMachine'
+require 'src.states.BaseState'
+require 'src.states.StateStack'
+
 --building blocks
 
 require 'src.Cell.MembraneSegment'
 require 'src.Cell.Membrane'
 require 'src.Cell.Organelle'
+require 'src.Cell.Neuron'
+require 'src.Cell.Brain'
 
 require 'src.Dummy'
-
-require 'src.Brain'
 require 'src.Agent'

@@ -23,8 +23,9 @@ function love.load()
     entities = {}
 
     entities[d1] = d1
-    --entities[ball] = ball
 
+    love.keywaspressed = {}
+    physics = true
 end
 
 function love.update(dt)
@@ -33,7 +34,12 @@ function love.update(dt)
         if v.update then v:update(dt) end
     end
 
-    world:update(dt)
+    if love.keywaspressed['space'] then physics = not physics end
+
+    if physics then world:update(dt) end
+
+    love.keywaspressed = {}
+    
 end
 
 
@@ -83,5 +89,7 @@ end
 function love.keypressed(key)
     if key == 'escape' then
         love.event.quit('restart')
+    else
+        love.keywaspressed[key] = true
     end
 end

@@ -10,7 +10,7 @@ function Dummy:init(def)
     self.res = def.res or 8
     self.radius = 150
     self.body = Membrane(self)
-    self.verticies = self.body.verticies
+    self.segments = self.body.segments
 
     self.organs = {}
     ----[[

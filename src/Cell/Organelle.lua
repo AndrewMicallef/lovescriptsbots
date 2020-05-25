@@ -17,14 +17,29 @@ function Organelle:init(parent)
     self.dragging = {active = false, diffX = 0, diffY = 0}
 
     self.body = love.physics.newBody(self.world, self.pos.x, self.pos.y, 'dynamic')
-    self.shape = love.physics.newCircleShape(SEGMENT_W*1.5)
+    self.shape = love.physics.newCircleShape(10)
     self.fixture = love.physics.newFixture(self.body, self.shape)
     self.fixture:setUserData(self)
     self.body:setUserData(self)
 
+    --self.statemachine = def.statemachine
+
 end
 
 function Organelle:update(dt)
+
+    -- Get inputs
+    --self.statemachine:update()
+
+    if love.keywaspressed['q'] and self.isselected then
+        -- Do hook
+        self:hook()
+    elseif love.keywaspressed['w'] and self.isselected then
+        -- Do Break
+        self:tear()
+    end
+
+
     --TODO
     self.pos = Vector(self.body:getPosition())
 
@@ -37,16 +52,6 @@ function Organelle:update(dt)
     else
         if self.dragging.active then
             self.dragging.active = false end
-
-        --[[
-        local fnet = Vector.zero
-        for _, f in pairs(self.forces) do
-            fnet = fnet + f.force
-        end
-        self.body:applyLinearImpulse(fnet.x, fnet.y)
-        --local dx, dy = fnet.x * dt, fnet.y * dt
-        --self.body:setPosition(x + dx, y + dy)
-        ]]
     end
 end
 
@@ -54,5 +59,65 @@ function Organelle:render()
     local cx, cy = self.pos.x, self.pos.y
     love.graphics.setColor(1,0,0,.5)
     if self.isselected then love.graphics.setColor(1,0,0,1) end
-    love.graphics.circle('fill', cx,cy, SEGMENT_W*1.5)
+    love.graphics.circle('fill', cx,cy, 10)
+
+    if self.joint then
+        local x1,y1, x2, y2 = self.joint:getAnchors()
+        love.graphics.setColor(1,1,1,1)
+        love.graphics.line(x1,y1,x2,y2)
+    end
+end
+
+
+--------------------------------------------------------------------------------
+-- Actions
+--------------------------------------------------------------------------------
+
+function Organelle:hook()
+
+    if self.joint then
+        self.joint:destroy()
+        self.joint = nil
+        print('detached hook')
+        return
+    end
+
+    local segments = self.parent.segments
+
+    local min_dist
+    local closest_segment
+
+    for _, segment in pairs(segments) do
+
+        local distance = self.pos:dist(segment.pos)
+        if not min_dist or min_dist > distance then
+            closest_segment = segment
+            min_dist = distance
+        end
+    end
+
+    if min_dist > 200 then
+        return
+    end
+
+    local anchor = (self.pos + closest_segment.pos) / 2
+    self.joint = love.physics.newDistanceJoint( self.body, closest_segment.body,
+                                            self.pos.x, self.pos.y,
+                                            closest_segment.pos.x,
+                                            closest_segment.pos.y,
+                                            false)
+
+    self.joint:setLength(20)
+
+    print('hooked segment ' .. closest_segment.id)
+end
+
+function Organelle:tear()
+end
+
+
+--------------------------------------------------------------------------------
+
+function Organelle:getInputs()
+
 end
