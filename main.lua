@@ -17,7 +17,7 @@ function love.load()
     -- spawn agents
     d1 = Dummy{world=world,
                   pos=Vector.new(WIDTH/2, HEIGHT/2),
-                  res=35
+                  res=25
               }
 
     entities = {}
@@ -39,7 +39,7 @@ function love.update(dt)
     if physics then world:update(dt) end
 
     love.keywaspressed = {}
-    
+
 end
 
 

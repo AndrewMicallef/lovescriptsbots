@@ -129,6 +129,10 @@ function MembraneSegment:addLink(other)
         return
     end
 
+    if self.organelle or other.organelle then
+        return
+    end
+
     local anc_pair -- pair of anchors
     local min_d  -- the minimum distance between anchors
 

@@ -57,8 +57,8 @@ end
 
 function Organelle:render()
     local cx, cy = self.pos.x, self.pos.y
-    love.graphics.setColor(1,0,0,.5)
-    if self.isselected then love.graphics.setColor(1,0,0,1) end
+    love.graphics.setColor(0,1,1,.5)
+    if self.isselected then love.graphics.setColor(0,1,1,1) end
     love.graphics.circle('fill', cx,cy, 10)
 
     if self.joint then
@@ -78,6 +78,7 @@ function Organelle:hook()
     if self.joint then
         self.joint:destroy()
         self.joint = nil
+        self.segment.organelle = nil
         self.segment = nil
         print('detached hook')
         return
@@ -110,6 +111,7 @@ function Organelle:hook()
 
     self.joint:setLength(20)
     self.segment = closest_segment
+    self.segment.organelle = self
     print('hooked segment ' .. closest_segment.id)
 end
 
@@ -123,6 +125,7 @@ function Organelle:tear()
     for other, anchor in pairs(self.segment.anchors) do
         if anchor.joined then
             self.segment:remLink(other)
+            --anchor.joined = true
             print('severed link to: ' .. other.id)
             break
         end

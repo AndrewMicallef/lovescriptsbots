@@ -5,8 +5,8 @@ A Membrane is a physical object defined by a collection of vertices,
 linked via distance joints
 ]]
 
-MAX_DIST = SEGMENT_W*1.5
-LINK_DIST = SEGMENT_W
+MAX_DIST = SEGMENT_W*4
+LINK_DIST = SEGMENT_W*2
 function Membrane:init(parent)
     self.parent = parent
     self.pos = parent.pos
@@ -110,10 +110,10 @@ function Membrane:calcPressure(PRESSURE_CONSTANT)
             local col = {}
 
             if this_segment.linkcount < 2 and other_segment.linkcount < 2 then
-                pmag = -PRESSURE_CONSTANT/5 / math.max(dist, 0.0001)
+                pmag = -PRESSURE_CONSTANT / math.max(dist, 0.0001)
                 col = {1,.5,.5,1}
             else
-                pmag = 10*PRESSURE_CONSTANT / math.max(dist, SEGMENT_H)^2
+                pmag = PRESSURE_CONSTANT / math.max(dist, SEGMENT_H)^2
                 col = {.5,.5,1,1}
             end
 
