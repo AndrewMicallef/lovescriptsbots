@@ -110,6 +110,9 @@ function Organelle:hook()
                                             false)
 
     self.joint:setLength(20)
+    self.joint:setDampingRatio(1)
+    self.joint:setFrequency(30)
+
     self.segment = closest_segment
     self.segment.organelle = self
     print('hooked segment ' .. closest_segment.id)
