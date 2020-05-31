@@ -104,7 +104,7 @@ function Membrane:calcPressure(PRESSURE_CONSTANT)
             local xj,yj = other_segment.pos.x, other_segment.pos.y
 
             -- 1. calcualte the force based on distance
-            local dist = math.sqrt((xi-xj)^2 + (yi-yj)^2)
+            local dist = (xi-xj)^2 + (yi-yj)^2
 
             local pmag
             local col = {}
@@ -113,7 +113,7 @@ function Membrane:calcPressure(PRESSURE_CONSTANT)
                 pmag = -PRESSURE_CONSTANT / math.max(dist, 0.0001)
                 col = {1,.5,.5,1}
             else
-                pmag = PRESSURE_CONSTANT / math.max(dist, SEGMENT_H)^2
+                pmag = PRESSURE_CONSTANT / math.max(dist, SEGMENT_H)
                 col = {.5,.5,1,1}
             end
 
