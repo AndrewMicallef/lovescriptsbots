@@ -113,7 +113,7 @@ function Membrane:calcPressure(PRESSURE_CONSTANT)
                 pmag = -PRESSURE_CONSTANT / math.max(dist, 0.0001)
                 col = {1,.5,.5,1}
             else
-                pmag = PRESSURE_CONSTANT / math.max(dist, SEGMENT_H)
+                pmag = PRESSURE_CONSTANT / math.max(dist, SEGMENT_H)^.5
                 col = {.5,.5,1,1}
             end
 
