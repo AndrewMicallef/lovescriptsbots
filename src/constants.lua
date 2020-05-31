@@ -1,0 +1,1 @@
+ELEC_FIELD_K = .05
