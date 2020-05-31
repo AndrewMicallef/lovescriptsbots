@@ -2,19 +2,26 @@ BindingSite = Class{__includes = Molecule}
 
 -- A binding site is a special type of molecule. It is a sensor that can form a
 -- molecular bond with certain types of molecules it comes into contact with.
+--[[
+   Binding sites must be instantiated with a parent molecule and a radius.
+--]]
 
 BindingSite.__type = "BindingSite"
 
 function BindingSite:init(props)
-    self = Molecule(props)
+    props.radius = props.radius or 8
+    assert(props.parent:typeOf("Molecule"), "BindingSite requires Molecule parent")
+    assert(type(props.radius) == 'number', "BindingSite requires numerical radius")
+    props.shape = props.shape or love.physics.newCircleShape(props.loc.x,
+                                                             props.loc.y,
+                                                             props.radius)
+    props.body = props.parent.body
 
-    self.body = love.phsyics.newBody(self.loc.x, self.loc.y, 'static')
-    self.shape = love.physics.newCircleShape(self.radius)
-    self.fixture = love.physics.newFixture(self.body, self.shape)
+    Molecule.init(self, props)
+
     self.fixture:setSensor(true)
 
-    self.__debug = false
-
+    self.__debug = true
 end
 
 --[[
@@ -23,13 +30,13 @@ end
 --]]
 
 function BindingSite:render()
-    self.statemachine:render()
+    --TODO self.statemachine:render()
 
     if self.__debug then
-        local x,y = self.body:getPosition()
+        local cx,cy = self.body:getWorldPoints(self.shape:getPoint())
         local r = self.radius
 
-        love.graphics.setColor(gColor['white'])
-        love.graphics.circle(x, y, r)
+        love.graphics.setColor(gColor['orange'])
+        love.graphics.circle('line', cx, cy, r)
     end
 end

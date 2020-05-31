@@ -5,10 +5,12 @@ function love.load()
     WIDTH, HEIGHT = love.window.getMode()
     gWorld = love.physics.newWorld()
 
+
     gEntities = {
-        ['molecule'] = Molecule{world=gWorld,
-                             loc = Vector(WIDTH/2, HEIGHT/2)
-                             }
+        ['m'] = Molecule{world=gWorld,
+                         loc = Vector(WIDTH/2, HEIGHT/2),
+                         bindsites = 3
+                         }
     }
 
 
