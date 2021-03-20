@@ -69,7 +69,7 @@ function Agent:update(dt)
     self:think()
 
     -- act
-    self:act()
+    self:act(dt)
 end
 
 function Agent:render()
@@ -91,7 +91,7 @@ function Agent:metabolise(dt)
     --TODO eating food adds to health
     --TODO reproducing costs health
 
-    self.health = self.health - dt * 0.1
+    --self.health = self.health - dt * 0.1
 
     if self.health < 0 then
         self.isdead = true
@@ -141,6 +141,8 @@ function Agent:act(dt)
     self.col.red = self.actuators['col.red']
     self.col.gre = self.actuators['col.gre']
     self.col.blu = self.actuators['col.blu']
+
+    self.health = self.health - f_thrust * dt
 end
 
 function Agent:reproduce()
