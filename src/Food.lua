@@ -20,6 +20,7 @@ function Food:init(def)
     self.shape = love.physics.newRectangleShape(self.radius, self.radius)
     self.fixture = love.physics.newFixture(self.body, self.shape)
     self.fixture:setUserData(self)
+    self.body:setUserData(self)
 
 end
 
