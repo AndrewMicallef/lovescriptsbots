@@ -7,10 +7,11 @@ function Food:init(def)
 
     self.pos = def.pos or Vector.new(math.random(0, WIDTH), math.random(0, HEIGHT))
 
-    self.health = def.health or math.random() * HEALTHMAX
-    self.col = {red = math.cos(self.health),
-                gre = math.sin(self.health),
-                blu = math.cos(self.health)}
+    self.energy = def.health or math.random() * HEALTHMAX
+
+    self.col = {red = math.cos(self.energy),
+                gre = math.sin(self.energy),
+                blu = math.cos(self.energy)}
 
     self.radius = 5
 
@@ -43,5 +44,5 @@ function Food:type()
 end
 
 function Food:typeOf(name)
-    return name == self:tyoe()
+    return name == self:type()
 end

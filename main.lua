@@ -22,7 +22,7 @@ function love.load()
             local food = types['Food']
 
             if not food.eaten then
-                agent.health = agent.health + food.health
+                agent:consume(food)
                 food.eaten = true
                 table.insert(destroyedBodies, food.body)
             end
@@ -50,7 +50,6 @@ function love.load()
     function Dish:type()
         return 'Dish'
     end
-	--Dish.body:setAngularVelocity(0.5)
 
     -- spawn agents
     entities = {}

@@ -8,6 +8,7 @@ function Agent:init(def)
     self.pos = def.pos or Vector.new(math.random(0, WIDTH), math.random(0, HEIGHT))
     self.angle = def.angle or math.random() * 2 * math.pi
 
+    self.energy = 20
     self.health = def.health or math.random() * HEALTHMAX
     self.isdead = false
     self.birth = love.timer.getTime()
@@ -20,19 +21,14 @@ function Agent:init(def)
 
     self.radius = 8
 
-    self.clockf1 = math.random(5,100) or def.parent.clockf1
-    self.clockf2 = math.random(5,100) or def.parent.clockf2
-
-    self.MUTRATE1 = 0.003
-    self.MUTRATE2 = 0.05
-
     -- physical presence
     self.body = love.physics.newBody(self.world, self.pos.x, self.pos.y, 'dynamic')
     self.shape = love.physics.newCircleShape(self.radius)
     self.fixture = love.physics.newFixture(self.body, self.shape)
     self.fixture:setUserData(self)
 
-    self.sensors = Ntable{"health",
+    self.sensors = Ntable{"energy",
+                           "health",
                            "angle",
                            "flagella.angle",
                            "flagella.thrust",
@@ -100,11 +96,16 @@ function Agent:metabolise(dt)
     if self.health < 0 then
         self.isdead = true
     end
+
+    if self.isdead then
+        self.energy = self.energy - dt * 0.1
+    end
 end
 
 function Agent:sense()
     -- read out all sensor values
     self.sensors['health'] = cappedvalue(self.health / HEALTHMAX)
+    self.sensors['energy'] = cappedvalue(self.energy / HEALTHMAX)
 
     local vx, vy = self.body:getLinearVelocity()
     self.sensors['vx'] = vx
@@ -146,6 +147,22 @@ function Agent:reproduce()
 end
 
 function Agent:mutate()
+end
+
+function Agent:consume(food)
+
+    local energy_intake = food.energy or food.health + food.energy
+
+    if self.energy < ENERGYSTORE then
+        local deficit = ENERGYSTORE - self.energy
+        local balance = energy_intake - deficit
+
+        self.energy = self.energy + deficit
+        self.health = self.health + balance
+    else
+        self.health = self.health + energy_intake
+    end
+
 end
 
 
