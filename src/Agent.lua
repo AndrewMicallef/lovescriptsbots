@@ -14,6 +14,9 @@ function Agent:init(def)
     self.birth = love.timer.getTime()
     self.gencount = 0 or def.parent.gencount + 1
 
+    self.f_angle = 0
+    self.f_thrust = 0
+
     self.col = {red = math.random() or def.parent.col.red,
                 gre = math.random() or def.parent.col.gre,
                 blu = math.random() or def.parent.col.blu
@@ -26,6 +29,7 @@ function Agent:init(def)
     self.shape = love.physics.newCircleShape(self.radius)
     self.fixture = love.physics.newFixture(self.body, self.shape)
     self.fixture:setUserData(self)
+    self.body:setUserData(self)
 
     self.sensors = Ntable{"energy",
                            "health",
@@ -34,7 +38,8 @@ function Agent:init(def)
                            "flagella.thrust",
                            "col.red", "col.gre", "col.blu",
                            "vx", "vy",
-                           "mx", "my", 'dm'
+                           "mx", "my", 'dm',
+                           'dragging'
                          }
 
     self.actuators = Ntable{
@@ -47,6 +52,10 @@ function Agent:init(def)
 
     -- collection of the traits that are able to be mutated
     self.mutable_traits = {}
+
+    self.isselected = nil
+    self.dragging = nil
+
 
 end
 
@@ -70,6 +79,7 @@ function Agent:update(dt)
 
     -- act
     self:act(dt)
+
 end
 
 function Agent:render()
@@ -116,33 +126,62 @@ function Agent:sense()
     self.sensors['col.gre'] = self.col.gre
     self.sensors['col.blu'] = self.col.blu
 
-    local mx, my = love.mouse.getPosition()
-    self.sensors["mx"] = mx
-    self.sensors["my"] = my
 
     local px, py = self.body:getPosition()
-    self.sensors['dm'] = math.sqrt((mx - px)^2 + (my-py)^2)
+
     self.pos.x, self.pos.y = px, py
+
+    if self.dragging then
+        local mx, my = love.mouse.getPosition()
+        self.dx, self.dy = mx - px, my - py
+        self.sensors['dragging'] = 1
+        self.sensors["dx"] = self.dx
+        self.sensors["dy"] = self.dy
+    else
+        self.sensors['dragging'] = 0
+        self.sensors["dx"] = 0
+        self.sensors["dy"] = 0
+        self.dx, self.dy = 0, 0
+    end
+
+    self.sensors['flagella.angle'] = self.f_angle
+    self.sensors['flagella.thrust'] = self.f_thrust
+
 end
 
 function Agent:think()
+
     -- brain needs to actuate some properties of the agent
     self.brain:update(self.sensors, self.actuators)
 end
 
 function Agent:act(dt)
+
+    local Fnet
     -- run all actuators
-    local f_angle = self.actuators['flagella.angle'] * math.pi * 2
-    local f_thrust = self.actuators['flagella.thrust'] * MAX_THRUST
-    -- ...
-    local Fnet = Vector.fromPolar(f_angle, f_thrust)
+    if self.dragging then
+        Fnet = Vector(self.dx, self.dy)
+        local mag = Fnet:len()
+        if mag > MAX_THRUST then
+            local unitvec = Fnet:normalized()
+            Fnet = unitvec * MAX_THRUST
+            mag = MAX_THRUST
+        end
+        self.f_angle = Fnet:angleTo()
+        self.f_thrust = mag
+    else
+        self.f_angle = self.actuators['flagella.angle'] * math.pi * 2
+        self.f_thrust = self.actuators['flagella.thrust'] * MAX_THRUST
+        Fnet = Vector.fromPolar(self.f_angle, self.f_thrust)
+    end
+
     self.body:applyLinearImpulse(Fnet.x, Fnet.y)
 
     self.col.red = self.actuators['col.red']
     self.col.gre = self.actuators['col.gre']
     self.col.blu = self.actuators['col.blu']
 
-    self.health = self.health - f_thrust * dt
+    self.health = self.health - self.f_thrust * dt
 end
 
 function Agent:reproduce()
