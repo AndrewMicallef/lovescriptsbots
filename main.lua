@@ -176,7 +176,7 @@ end
 
 function love.mousereleased(x, y, button)
    if button == 2
-       and selected.dragging
+       and selected
    then
        selected.dragging = nil
    end
