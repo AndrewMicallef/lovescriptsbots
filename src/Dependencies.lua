@@ -1,11 +1,11 @@
-Class = require 'lib/hump/class'
+Class = require 'lib.hump.class'
 
-Vector = require 'lib/hump/vector'
+Vector = require 'lib.hump.vector'
 
-require 'src/utility'
+require 'src.utility'
 
-require 'src/constants'
+require 'src.constants'
 
-require 'src/brain'
-require 'src/agent'
-require 'src/food'
+require 'src.brain'
+require 'src.agent'
+require 'src.food'

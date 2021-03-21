@@ -1,22 +1,33 @@
+# Love:ScriptBots
 
-rework of https://github.com/Ramblurr/scriptbots in love engine
+This project is a hobbyists fork of Andrej Karpathy's [ScriptBots], rewritten
+in the [love2D] engine.
 
 --------------------------------------------------------------------------------
 
-[https://stackoverflow.com/a/17437077/2727632]
-If you want to access the items in a specific order, retrieve the keys from `arr`
-and sort it. Then access arr through the sorted keys:
+# RoadMap
 
-```lua
-local ordered_keys = {}
+* [X] Basic Agent Dynamics
+* [X] Basic Metabolism
+* [ ] Reproductionm
+* [ ] Evolution
+* [ ] Learning
+* [ ] Dynamic Polygon Bodies
+    * [X] Soft body cell membrane
+        * [X] enzymatic unlinking of membrane segments
+        * [X] enzymatic to grab and hold membrane segments
+    * [ ] Digestion of internal "stuff"
 
-for k in pairs(arr) do
-    table.insert(ordered_keys, k)
-end
 
-table.sort(ordered_keys)
-for i = 1, #ordered_keys do
-    local k, v = ordered_keys[i], arr[ ordered_keys[i] ]
-    print(k, v[1], v[2], v[3])
-end
-```
+* [ ] Geometric Logic
+--------------------------------------------------------------------------------
+
+# What I am currently Working on:
+
+## Soft body finalisation
+
+With the above 2 features implemented I should be able to get organelle mediated
+endocytosis (which ultimately means the brain can control eating).
+
+[ScriptBots]:(https://github.com/Ramblurr/scriptbots)
+[love2d]:(https://love2d.org/)

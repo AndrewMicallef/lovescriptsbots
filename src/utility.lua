@@ -33,7 +33,6 @@ function randn(mu, sigma)
     end
 end
 
-
 function cappedvalue(v, min, max)
 
     min = min or 0
@@ -43,11 +42,9 @@ function cappedvalue(v, min, max)
 
 end
 
-
+-- http://neuralnetworksanddeeplearning.com/chap1.html
+-- equation 3
 function softmax(x)
-    -- TODO implement softmax
-    -- http://neuralnetworksanddeeplearning.com/chap1.html
-    -- equation 3
     return 1 / (1 + math.exp(-x))
 end
 
@@ -73,4 +70,24 @@ function Ntable(table)
     ntable._count = _count
 
     return ntable
+end
+
+-- https://www.mathopenref.com/coordpolygonarea2.html
+function polygonArea(points)
+    -- where X, Y is a list of points in the arangements x1,y1,x2,y2 ... xn,yn
+    local area = 0 -- Accumulates area
+    local prevpoint = #points
+    local numpoints = #points
+
+    for i=1, numpoints do
+     area = area + (points[prevpoint].x+points[i].x) * (points[prevpoint].y-points[i].y)
+     prevpoint = i  -- j is previous vertex to i
+    end
+      return area/2
+end
+
+function Edge(u, v)
+    local edge = {u, v}
+    table.sort(edge)
+    return edge
 end
